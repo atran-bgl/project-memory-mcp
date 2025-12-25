@@ -64,11 +64,18 @@ Workflow steps:
 
 ### .project-memory/prompts/review.md
 Workflow steps:
-1. Get git diff (unstaged and staged)
-2. Read context (tasks, architecture, specs)
-3. Analyze changes (quality, bugs, security, architecture alignment, task progress)
-4. Propose updates via AskUserQuestion (task status, architecture changes, issues)
-5. Apply approved changes
+1. Ask user for review scope via AskUserQuestion:
+   - "Review recent uncommitted changes" (git diff)
+   - "Review entire codebase" (full code against architecture/standards)
+   - "Review specific file/directory" (focused review of selected area)
+2. Based on user choice:
+   - Recent changes: Get git diff (unstaged and staged)
+   - Full codebase: Read architecture, conventions, key files
+   - Specific area: Ask for path, review that section
+3. Read context (tasks, architecture, specs)
+4. Analyze changes/code for quality, bugs, security, architecture alignment, task progress
+5. Propose updates via AskUserQuestion (task status, architecture changes, issues)
+6. Apply approved changes
 
 ### .project-memory/prompts/sync.md
 Workflow steps:

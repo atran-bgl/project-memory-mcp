@@ -134,15 +134,29 @@ Remember: Get user approval before writing any files.
           'review.md',
           `# Code Review
 
-You are helping review uncommitted code changes.
+You are helping review code changes.
+
+## Review Scope
+
+Before proceeding, ask the user what they want to review:
+
+**Use AskUserQuestion with these options:**
+- "Review recent uncommitted changes" - Reviews git diff (staged and unstaged)
+- "Review entire codebase" - Comprehensive review of all code against architecture and standards
+- "Review specific file or directory" - Focused review of user-selected area
+
+Get user's choice before proceeding.
+
+---
 
 ## Task Schema
 
 ${TASK_JSON_SCHEMA}
 
-## Instructions
+## Instructions (based on chosen scope)
 
-1. Get git diff using Bash tool: \`git diff\` and \`git diff --cached\`
+### For Recent Changes:
+1. Get git diff using Bash: \`git diff\` and \`git diff --cached\`
 2. Read current context:
    - .project-memory/tasks/tasks-active.json
    - .project-memory/architecture.md
@@ -152,10 +166,31 @@ ${TASK_JSON_SCHEMA}
    - Potential bugs or security issues
    - Alignment with architecture
    - Task progress
+
+### For Entire Codebase:
+1. Read codebase structure from .project-memory/architecture.md
+2. Review key files and components against:
+   - .project-memory/conventions.md (coding standards)
+   - .project-memory/architecture.md (design compliance)
+   - Tasks in .project-memory/tasks/tasks-active.json
+3. Analyze for:
+   - Architectural consistency
+   - Adherence to conventions
+   - Technical debt
+   - Unfinished tasks implementation
+
+### For Specific Area:
+1. Ask user to specify file/directory path
+2. Read relevant files in that area
+3. Compare against conventions and architecture
+4. Check if files are part of any active tasks
+
+## Final Step
+
 4. Propose updates via AskUserQuestion:
    - Task status changes
    - Architecture updates
-   - Issues found
+   - Issues found (with severity: critical/high/medium/low)
 5. After approval, apply changes using Write/Edit tools
 
 Remember: Get user approval before writing any files.
