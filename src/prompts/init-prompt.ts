@@ -1,8 +1,9 @@
 import { TASK_JSON_SCHEMA } from '../schemas/task-schema.js';
 
 /**
- * Hardcoded init prompt - the ONLY hardcoded prompt in the system
- * All other prompts are project-specific and created during initialization
+ * Hardcoded init prompt - bootstrap tool for NEW projects
+ * Runtime composed with fallback templates (parse-tasks, review, sync) so Claude can write them as starting files
+ * All workflow prompts become project-specific after initialization
  */
 export const INIT_PROMPT = `
 # Project Memory Initialization
@@ -35,48 +36,46 @@ Detect and record:
 
 ## Step 3: Create Prompt Templates
 
-Create 4 files with generic content (customize in Step 4):
+**Use the fallback templates provided at the end of this prompt** as starting content.
 
-**base.md**: Sections:
-- Core Responsibilities (file reading, git, task management)
-- Project Memory file structure (list paths)
-- Task Schema: ${TASK_JSON_SCHEMA}
-- Rules (approval, 200-line limit, JSON format, timestamps)
+Write these 4 files to \`.project-memory/prompts/\`:
 
-**parse-tasks.md**: Workflow:
-1. Detect task structure (single-file tasks-active.json vs. multi-file tasks-active_{domain}.json via tasks-index.json)
-2. Read spec from .project-memory/specs/ or user message
-3. Extract tasks (ID, title, description, criteria, dependencies, priority, subtasks)
-4. For multi-file: assign tasks to domains; check duplicates in all relevant files
-5. Show parsed tasks to user via AskUserQuestion (indicate target file(s))
-6. After approval: update tasks-active.json or tasks-active_{domain}.json; update tasks-index.json if multi-file
+1. **base.md** - Create with generic content including:
+   - Core Responsibilities (file reading, git, task management)
+   - Project Memory file structure (list paths)
+   - Task Schema: ${TASK_JSON_SCHEMA}
+   - Rules (approval, 200-line limit, JSON format, timestamps)
+   - Task Completion Criteria: **CRITICAL: Always mark task as COMPLETED only when:** (1) Implementation is verified to work (code exists and functions as intended), (2) Tests pass (unit tests, integration tests, or manual verification completed), (3) No blocking issues remain
+   - Security Rules: **NEVER** commit .env, hardcode credentials, log secrets, write API keys in tests. **ALWAYS** use environment variables, keep .env in .gitignore, define ports in .env (never hardcode), check port conflicts before deployment
 
-**review.md**: Workflow:
-1. Detect task structure
-2. Ask user scope: "Review recent changes" (git diff) / "Review entire codebase" / "Review specific area"
-3. Based on choice, read appropriate tasks (single-file or relevant domain files), architecture.md, conventions.md, specs/
-4. Analyze for quality/bugs/security/architecture alignment/task progress
-5. Propose updates via AskUserQuestion (task status, architecture, issues)
-6. Apply approved changes using appropriate task files
+2. **parse-tasks.md** - Use the "Template for parse-tasks.md" provided below
 
-**sync.md**: Workflow:
-1. Detect task structure
-2. Get commit history (last 20)
-3. Read tasks (single-file or all domain files), commit-log.md, architecture.md
-4. Match commits to task IDs; determine completions based on criteria
-5. Propose updates via AskUserQuestion (move completed tasks, update logs, architecture, commands)
-6. Apply approved changes (update appropriate files based on detected structure)
+3. **review.md** - Use the "Template for review.md" provided below
+
+4. **sync.md** - Use the "Template for sync.md" provided below
+
+**Note:** The templates are complete, working prompts. Write them as-is to the files (you'll customize them in Step 4).
 
 ---
 
 ## Step 4: Customize Prompts
-
 Add project-specific details to each file:
 - Language guidelines (TypeScript types/ESLint, Python PEP 8, Go gofmt, etc.)
 - Framework patterns (React hooks, Django apps, etc.)
 - Testing approach and patterns
 - Build/deploy/CI commands
 - Security/performance review checklists
+- For code review prompt: ask user if any specific files/directories that need special attention or adding further context to the review scope. 
+- For parse-tasks prompt: incorporate any existing task file naming/structure patterns detected in Step 2
+
+**example for additions to review prompt:** 
+The current nodule is a microservice that is part of larger system. Pay special attention to API contracts and inter-service communication patterns.
+
+**example for additions to parse-tasks prompt:**
+The project uses a domain-based task structure with files named tasks-active_{domain}.json. Domains include auth, api, ui, database, infra.
+
+**example for additions to sync prompt:**
+During sync, pay special attention to any changes in deployment scripts or infrastructure-as-code files.
 
 Keep each ≤ 200 lines. For multi-language projects, create .project-memory/prompts/languages/ with language-specific extensions.
 
