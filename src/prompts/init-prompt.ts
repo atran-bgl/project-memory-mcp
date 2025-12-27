@@ -109,9 +109,10 @@ If CLAUDE.md exists and >50 lines:
 
 ---
 
-## Step 7: Update CLAUDE.md
+## Step 7: Update or Create CLAUDE.md
 
-Add this reference section:
+If CLAUDE.md doesn't exist, create it with this content.
+If CLAUDE.md exists, add this reference section to it:
 
 \`\`\`markdown
 ## Project Memory System
