@@ -88,7 +88,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'create-spec',
         description:
-          'Create detailed specification from user requirements or file content. Initializes/syncs project memory, clarifies ambiguity, validates against codebase, considers security/edge cases/tests, and writes spec to .project-memory/specs/. Asks for larger context and flags inconsistencies.',
+          'Create detailed specification from user requirements. Use this tool when: (1) user asks to create/write a spec, (2) user describes a feature they want to build, (3) user says "spec this" or "write a spec for". Clarifies ambiguity, validates against codebase, considers security/edge cases/tests, and writes spec to .project-memory/specs/.',
         inputSchema: {
           type: 'object',
           properties: {},
