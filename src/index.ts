@@ -13,7 +13,7 @@ import { REVIEW_PROMPT } from './prompts/review-prompt.js';
 import { SYNC_PROMPT } from './prompts/sync-prompt.js';
 import { CREATE_SPEC_PROMPT } from './prompts/create-spec-prompt.js';
 import { REFRESH_PROMPTS_PROMPT } from './prompts/refresh-prompts-prompt.js';
-import { composePrompt, getProjectRoot } from './utils/prompt-loader.js';
+import { composePrompt, getProjectRoot, validatePromptLength } from './utils/prompt-loader.js';
 
 /**
  * Project Memory MCP Server
@@ -97,7 +97,31 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'refresh-prompts',
         description:
-          'Refresh project-specific prompts with latest template improvements while preserving customizations. Backs up existing prompts, compares with new templates, identifies customizations, and merges them into updated templates. Requires user approval before modifications.',
+          'Refresh project-specific prompts with latest template improvements while preserving customizations. Use this tool when: (1) user asks to "refresh prompts" or "update prompts", (2) user says "sync prompts" or "merge new templates", (3) after project-memory system updates to apply improvements. Backs up existing prompts, compares with new templates, identifies customizations, and merges them into updated templates. Requires user approval before modifications.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'get-new-sync-prompt',
+        description: 'Get the new sync.md template. Called during refresh-prompts to fetch the latest sync prompt template for comparison.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'get-new-review-prompt',
+        description: 'Get the new review.md template. Called during refresh-prompts to fetch the latest review prompt template for comparison.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'get-new-parse-tasks-prompt',
+        description: 'Get the new parse-tasks.md template. Called during refresh-prompts to fetch the latest parse-tasks prompt template for comparison.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -137,6 +161,8 @@ ${REVIEW_PROMPT}
 ### Template for sync.md:
 ${SYNC_PROMPT}
 `;
+        // Init prompt includes templates, so it may exceed normal limit - this is acceptable
+        validatePromptLength(prompt, 'init (with templates)');
         break;
 
       case 'parse-tasks':
@@ -154,17 +180,56 @@ ${SYNC_PROMPT}
       case 'organize':
         // Organize/migrate existing CLAUDE.md into project-memory
         prompt = ORGANIZE_PROMPT;
+        validatePromptLength(prompt, 'organize');
         break;
 
       case 'create-spec':
         // Create spec from user requirements or file content
         prompt = CREATE_SPEC_PROMPT;
+        validatePromptLength(prompt, 'create-spec');
         break;
 
       case 'refresh-prompts':
         // Refresh prompts with new templates while preserving customizations
         prompt = REFRESH_PROMPTS_PROMPT;
+        validatePromptLength(prompt, 'refresh-prompts');
         break;
+
+      case 'get-new-sync-prompt':
+        // Return the new sync.md template for comparison during refresh
+        validatePromptLength(SYNC_PROMPT, 'sync.md template');
+        return {
+          content: [
+            {
+              type: 'text',
+              text: SYNC_PROMPT,
+            },
+          ],
+        };
+
+      case 'get-new-review-prompt':
+        // Return the new review.md template for comparison during refresh
+        validatePromptLength(REVIEW_PROMPT, 'review.md template');
+        return {
+          content: [
+            {
+              type: 'text',
+              text: REVIEW_PROMPT,
+            },
+          ],
+        };
+
+      case 'get-new-parse-tasks-prompt':
+        // Return the new parse-tasks.md template for comparison during refresh
+        validatePromptLength(PARSE_TASKS_PROMPT, 'parse-tasks.md template');
+        return {
+          content: [
+            {
+              type: 'text',
+              text: PARSE_TASKS_PROMPT,
+            },
+          ],
+        };
 
       default:
         throw new Error(`Unknown tool: ${name}`);

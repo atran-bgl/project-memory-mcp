@@ -1,113 +1,156 @@
-import { TASK_JSON_SCHEMA } from '../schemas/task-schema.js';
-
 /**
  * Fallback prompt for review tool
  * Used when project-specific review.md doesn't exist
+ * Enforces actual code inspection over task-based review
  */
 export const REVIEW_PROMPT = `# Code Review
 
-You are helping review code changes.
+**MANDATORY: Analyze ACTUAL CODE, not just tasks or summaries.**
 
-**IMPORTANT: Use extended thinking for this review.**
-- Think carefully and thoroughly before providing feedback
-- Analyze each file/change methodically
-- Consider edge cases, security implications, and architectural impact
-- Do not rush - a thorough review catches issues early
+Use extended thinking - think carefully and thoroughly. Always:
+- Read the actual source files
+- Analyze code quality, logic, potential bugs
+- Check security implications thoroughly
+- Verify alignment with architecture and conventions
+- Consider edge cases and impact on existing code
 
-## Review Scope
+## Choose Review Scope
 
-Before proceeding, ask the user what they want to review:
-
-**Use AskUserQuestion with these options:**
-- "Review recent uncommitted changes" - Reviews git diff (staged and unstaged)
-- "Review entire codebase" - Comprehensive review of all code against architecture and standards
-- "Review specific file or directory" - Focused review of user-selected area
-
-Get user's choice before proceeding.
+Ask user what to review:
+- "Review recent uncommitted changes" - git diff + code analysis
+- "Review entire codebase" - Full code scan against standards
+- "Review specific file or directory" - Focused code inspection
 
 ---
 
-## Task Schema
+## For Recent Changes
 
-${TASK_JSON_SCHEMA}
+**CRITICAL: MUST read the actual modified files (not just diff summary)**
 
-## Detect Task Structure
+1. Get list of changed files:
+   \`git diff --name-only\` and \`git diff --cached --name-only\`
 
-Check if tasks-index.json exists:
-- **Single-file**: Use tasks-active.json and tasks-completed.json
-- **Multi-file**: Use tasks-active_{domain}.json and tasks-completed_{domain}.json
+2. **READ THE ACTUAL CODE:**
+   - Read each modified file in its entirety
+   - Understand what changed and WHY
+   - Analyze the logic and implementation
+   - Compare against conventions.md for style adherence
 
-## Instructions (based on chosen scope)
-
-### For Recent Changes:
-1. Get git diff: \`git diff\` and \`git diff --cached\`
-2. Read context:
-   - Tasks: tasks-active.json (or tasks-active_{domain}.json if multi-file)
-   - .project-memory/architecture.md
-   - .project-memory/specs/*.md (if relevant)
-3. **OUTPUT REQUIRED - Change Context:**
+3. **Code Analysis - OUTPUT REQUIRED:**
    \`\`\`
-   📝 Change Summary:
-   - Files modified: [list]
-   - Purpose: [what problem does this solve / what feature does it add]
-   - Benefit: [why is this change valuable]
-   - Related task: [TASK-XXX if applicable]
+   📝 Code Review:
+   Files: [list with line ranges if partial]
+
+   Implementation Quality:
+   - Logic correctness: [assessment]
+   - Potential bugs: [list any found]
+   - Security issues: [hardcoded secrets, .env, API keys, SQL injection, XSS, etc.]
+   - Code style: [adheres to conventions? yes/no + issues]
+
+   Architectural Impact:
+   - Aligns with architecture.md: [yes/no + explanation]
+   - Breaks any patterns/conventions: [list issues]
+   - Affects other components: [what impact]
    \`\`\`
-4. **Assess codebase relevancy:**
-   - Does change align with architecture? [yes/no + explanation]
-   - Does change follow conventions? [yes/no + explanation]
-   - Impact on existing code: [none/low/medium/high + areas affected]
-5. Analyze for issues:
-   - Code quality, bugs, security violations
-   - **Security**: hardcoded secrets, .env committed, API keys in code
-   - Task progress alignment
 
-### For Entire Codebase:
-1. Read: architecture.md, conventions.md, tasks-active.json
-2. Scan codebase: src/, lib/, tests/, config files
-3. **OUTPUT REQUIRED - Codebase Overview:**
+4. **Common Backend Issues - MUST CHECK:**
+   - **Database**: N+1 queries, missing indexes, connection pool exhaustion, unclosed connections, transaction deadlocks, missing pagination on large queries
+   - **Error Handling**: Unhandled exceptions, silent failures, generic error messages, missing try-catch blocks, improper async error handling, missing null checks
+   - **Performance**: Blocking operations in async code, missing caching, inefficient algorithms, large unbatched requests, missing timeouts
+   - **Resource Management**: Memory leaks, resource leaks, missing cleanup in finally/finally blocks, circular dependencies
+   - **API Security**: Missing input validation, missing rate limiting, missing authentication/authorization checks, exposed error details, missing CORS validation
+   - **Race Conditions**: Multiple concurrent requests to shared state, improper locking, stale data reads
+
+5. **Common Frontend Issues - MUST CHECK:**
+   - **Type Safety**: TypeScript violations (any types, missing null checks, unsafe casts), runtime type errors
+   - **State Management**: Stale closures, infinite loops/recursion, circular state updates, missing state synchronization
+   - **React-specific**: Missing dependency arrays in useEffect/useCallback, infinite rendering loops, missing keys in lists, improper prop drilling, memory leaks from subscriptions
+   - **Async Issues**: Unhandled promise rejections, missing error boundaries, race conditions from concurrent requests, callback hell
+   - **Edge Cases**: Off-by-one errors, boundary conditions, empty array handling, null/undefined coalescing
+
+6. Cross-reference with active tasks (from project memory context)
+
+---
+
+## For Entire Codebase
+
+**CRITICAL: MUST read actual source files systematically**
+
+1. Audit all source files: read key files, scan others
+
+2. **Codebase Analysis - OUTPUT REQUIRED:**
    \`\`\`
-   🏗️ Implementation Overview:
+   🏗️ Code Health:
 
-   Architecture:
-   - Pattern: [e.g., MVC, microservices, monolith]
-   - Key components: [list main modules/services]
-   - Data flow: [how data moves through system]
+   Structure & Architecture:
+   - Follows documented architecture.md: [yes/no]
+   - Inconsistencies found: [list violations]
 
-   Tech Stack:
-   - Language: [with version]
-   - Framework: [if any]
-   - Key dependencies: [major libraries]
+   Code Quality:
+   - Convention adherence: [% estimated + violations]
+   - Test coverage: [assess]
+   - Documentation: [present/missing]
 
-   Code Health:
-   - Test coverage: [high/medium/low/none]
-   - Documentation: [inline/external/missing]
+   Security & Performance:
+   - Security vulnerabilities: [hardcoded secrets, .env, input validation, auth checks, etc.]
+   - Backend issues: [N+1 queries, connection leaks, error handling, timeouts, etc.]
+   - Frontend issues: [type safety, infinite loops, stale closures, missing dependencies, etc.]
    - Technical debt: [areas needing attention]
    \`\`\`
-4. Analyze for:
-   - Architectural consistency
-   - Convention adherence
-   - **Security violations**: secrets, .env in git, API keys, port conflicts
-   - Unfinished task implementations
 
-### For Specific Area:
-1. Ask user for file/directory path
-2. Read files, compare against conventions/architecture
-3. **Provide context:** What this area does, how it fits in the system
-4. Check for security violations
-5. Check if part of active tasks
+3. **Systematic check for common issues:**
+   - Database queries (N+1, pagination, indexes, connections)
+   - Error handling (unhandled exceptions, silent failures)
+   - Type safety (TypeScript, null checks)
+   - Resource management (leaks, cleanup)
+   - Edge cases (boundaries, empty states, null coalescing)
+   - Concurrency (race conditions, locks)
 
-## Final Step
+4. List critical issues found
 
-4. Propose updates via AskUserQuestion:
-   - Task status changes
-     **CRITICAL: Mark task as COMPLETED only when:**
-     • Implementation is verified to work (code exists and functions as intended)
-     • Tests pass (unit tests, integration tests, or manual verification completed)
-     • No blocking issues remain
-   - Architecture updates
-   - Issues found (with severity: critical/high/medium/low)
-5. After approval, apply changes using Write/Edit tools
+---
 
-Remember: Get user approval before writing any files.
+## For Specific Area
+
+**CRITICAL: READ all files in the specified path**
+
+1. Get user-selected file/directory path
+2. Read all source files in that area
+3. Analyze: logic, quality, security, architectural fit
+4. Compare against conventions and architecture
+5. Check for common issues specific to the area:
+   - Backend endpoints: error handling, validation, timeouts, N+1 queries, proper HTTP codes
+   - Database code: connection management, query efficiency, indexes, pagination
+   - Frontend components: type safety, state management, renders, memory leaks
+   - Async code: error handling, race conditions, cancellation
+   - Configuration: hardcoded values, secrets, environment variables
+
+---
+
+## Code Structure & Testability Score
+
+Assess code quality on these dimensions (score /10):
+- **Code clarity**: Intent, naming, readability
+- **Documentation**: JSDoc, examples, comments
+- **Type safety**: TS usage, any types, null checks
+- **Modularity**: Separation, DRY, organization
+- **Testability**: Unit testability, mock-ability
+- **Error handling**: Exception handling, error clarity
+- **Extensibility**: Cost of adding new features
+- **Code duplication**: Repeated patterns
+
+For each: provide score, notes, and improvement recommendations if <8/10.
+
+---
+
+## Next Steps
+
+Propose updates via AskUserQuestion:
+- Code issues found (severity: critical/high/medium/low + fix recommendations)
+- Code structure assessment (with scores and improvement recommendations)
+- Task status updates (if code implements active tasks)
+- Architecture updates needed
+- Security violations requiring immediate action
+
+Get user approval before writing files.
 `.trim();

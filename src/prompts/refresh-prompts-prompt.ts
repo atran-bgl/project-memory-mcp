@@ -31,8 +31,11 @@ Update prompt templates with latest improvements while preserving project-specif
 **For each workflow prompt (parse-tasks.md, review.md, sync.md):**
 
 1. **Read current prompt** from \`.project-memory/prompts/[file]\`
-2. **Load new template** from fallback (same templates used in init)
-3. **Compare by sections** (not line-by-line) to identify differences
+2. **Fetch new template** using these MCP tools:
+   - Call \`mcp__project-memory__get-new-sync-prompt\` to get the new sync.md template
+   - Call \`mcp__project-memory__get-new-review-prompt\` to get the new review.md template
+   - Call \`mcp__project-memory__get-new-parse-tasks-prompt\` to get the new parse-tasks.md template
+3. **Compare by sections** (not line-by-line) between current version and fetched new template to identify differences
 
 **OUTPUT REQUIRED - For each file:**
 
@@ -58,7 +61,33 @@ Update prompt templates with latest improvements while preserving project-specif
 
 ---
 
-## Step 3: Ask User How to Proceed
+## Step 3: Ask About Additional Customizations
+
+**MANDATORY QUESTION - Ask via AskUserQuestion:**
+
+Besides the customizations we found, are there any OTHER improvements or customizations you want to apply to these prompts?
+
+For example:
+- Additional rules for review.md (code checks, security validations)
+- Extra requirements for parse-tasks.md (acceptance criteria patterns)
+- New enforcement rules for sync.md (validation checks, code verification steps)
+- Enhancements for create-spec.md (new specification sections, quality gates)
+- Custom workflows or patterns specific to your project
+
+**Allow user to:**
+1. "No, use defaults" - Skip additional customizations
+2. "Yes, here are my changes:" - [User provides list of customizations]
+3. "Show me what's possible" - [Show examples of common customizations]
+
+**If user provides customizations:**
+- Store them in memory for Step 4a
+- These will be merged INTO the new templates alongside existing customizations
+
+**CHECKPOINT:** Get user feedback
+
+---
+
+## Step 4: Ask User How to Proceed
 
 **MANDATORY QUESTION - Ask via AskUserQuestion:**
 
@@ -91,7 +120,7 @@ How should we refresh the prompts?
 
 ---
 
-## Step 4a: If Option 1 - Merge Customizations
+## Step 5a: If Option 1 - Merge Customizations
 
 **Re-analyze codebase (same as init Step 2):**
 
@@ -109,10 +138,12 @@ How should we refresh the prompts?
    - Task patterns → Add to parse-tasks.md task structure section
    - Special attention areas → Add to appropriate prompt sections
 
-3. **Inject preserved customizations:**
+3. **Inject preserved customizations + user-requested changes:**
+   - Merge BOTH: existing customizations (from Step 2) AND new user requests (from Step 3)
    - Match customization purpose to new template sections
    - Preserve custom language (user's words, not paraphrased)
    - Add comment markers: \`<!-- CUSTOM: [description] -->\` for future refreshes
+   - Clearly mark NEW customizations from Step 3: \`<!-- NEW CUSTOM: [description] -->\`
 
 4. **Show merged result - OUTPUT REQUIRED:**
    \`\`\`
@@ -137,7 +168,7 @@ How should we refresh the prompts?
 
 ---
 
-## Step 4b: If Option 2 - Regenerate Without Customizations
+## Step 5b: If Option 2 - Regenerate Without Customizations
 
 **Warn user:**
 "⚠️ This will discard all customizations. Are you sure?
@@ -157,7 +188,7 @@ Proceed?"
 
 ---
 
-## Step 4c: If Option 3 - Keep Current
+## Step 5c: If Option 3 - Keep Current
 
 **Confirm:** "Keeping current prompts. No changes made. Backup preserved at: [backup path]"
 
@@ -165,7 +196,7 @@ Proceed?"
 
 ---
 
-## Step 4d: If Option 4 - Show Detailed Diff
+## Step 5d: If Option 4 - Show Detailed Diff
 
 **For each file, show side-by-side comparison:**
 
@@ -186,11 +217,11 @@ Legend:
 ⚠️ Deprecated (removed in new)
 \`\`\`
 
-**After showing all diffs, return to Step 3**
+**After showing all diffs, return to Step 4**
 
 ---
 
-## Step 5: Verify & Summarize
+## Step 6: Verify & Summarize
 
 1. **List updated prompts:** \`ls -lh .project-memory/prompts/\`
 2. **Show summary:**
@@ -205,8 +236,9 @@ Updated files:
 
 Skipped: base.md (project-specific, not refreshed)
 
-Customizations preserved: [list]
-New improvements added: [list]
+Customizations preserved: [list from Step 2]
+New customizations added: [list from Step 3 user request]
+Template improvements merged: [list of new features]
 Backup location: .project-memory/prompts.backup-[timestamp]/
 
 Next steps:

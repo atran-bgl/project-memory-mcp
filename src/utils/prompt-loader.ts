@@ -2,19 +2,20 @@ import { promises as fs } from 'fs';
 import { join } from 'path';
 
 /**
- * Maximum lines allowed per prompt file to prevent context bloat
+ * Maximum lines allowed for overall composed prompts to prevent context bloat
+ * Composed prompts = base.md (optional) + specific prompt (e.g., sync.md)
  */
-export const MAX_PROMPT_LINES = 200;
+export const MAX_PROMPT_LINES = 400;
 
 /**
- * Validates that a prompt file does not exceed the line limit
+ * Validates that the final composed prompt does not exceed the line limit
  */
 export function validatePromptLength(content: string, filename: string): void {
   const lines = content.split('\n');
   if (lines.length > MAX_PROMPT_LINES) {
     console.warn(
       `Warning: ${filename} has ${lines.length} lines, exceeding the ${MAX_PROMPT_LINES} line limit. ` +
-      `Consider splitting this prompt to prevent context bloat.`
+      `Consider removing content or splitting this prompt to prevent context bloat.`
     );
   }
 }
@@ -44,6 +45,7 @@ export async function readPromptFile(
 /**
  * Composes a prompt by combining base + specific prompt
  * Returns the hardcoded fallback if project-specific prompts don't exist
+ * Validates that the final composed prompt does not exceed MAX_PROMPT_LINES
  */
 export async function composePrompt(
   projectRoot: string,
@@ -53,8 +55,9 @@ export async function composePrompt(
   const base = await readPromptFile(projectRoot, 'base.md');
   const specific = await readPromptFile(projectRoot, specificPrompt);
 
-  // If project-specific prompts don't exist, return fallback
+  // If project-specific prompts don't exist, use fallback
   if (!base && !specific) {
+    validatePromptLength(fallbackPrompt, 'fallback');
     return fallbackPrompt;
   }
 
@@ -69,7 +72,12 @@ export async function composePrompt(
     parts.push(specific);
   }
 
-  return parts.join('\n\n---\n\n');
+  const composed = parts.join('\n\n---\n\n');
+
+  // Validate the final composed prompt
+  validatePromptLength(composed, `${specificPrompt} (composed)`);
+
+  return composed;
 }
 
 /**
