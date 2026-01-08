@@ -23,20 +23,49 @@ Ask user what to review:
 
 ---
 
+## Critical Issues to Check (All Review Paths)
+
+**Common Backend Issues - MUST CHECK in ALL reviews:**
+- **Database**: N+1 queries, missing indexes, connection pool exhaustion, unclosed connections, transaction deadlocks, missing pagination on large queries
+- **Error Handling**: Unhandled exceptions, silent failures, generic error messages, missing try-catch blocks, improper async error handling, missing null checks
+- **Performance**: Blocking operations in async code, missing caching, inefficient algorithms, large unbatched requests, missing timeouts
+- **Resource Management**: Memory leaks, resource leaks, missing cleanup in finally/finally blocks, circular dependencies
+- **API Security**: Missing input validation, missing rate limiting, missing authentication/authorization checks, exposed error details, missing CORS validation
+- **Race Conditions**: Multiple concurrent requests to shared state, improper locking, stale data reads
+
+**Common Frontend Issues - MUST CHECK in ALL reviews:**
+- **Type Safety**: TypeScript violations (any types, missing null checks, unsafe casts), runtime type errors
+- **State Management**: Stale closures, infinite loops/recursion, circular state updates, missing state synchronization
+- **React-specific**: Missing dependency arrays in useEffect/useCallback, infinite rendering loops, missing keys in lists, improper prop drilling, memory leaks from subscriptions
+- **Async Issues**: Unhandled promise rejections, missing error boundaries, race conditions from concurrent requests, callback hell
+- **Edge Cases**: Off-by-one errors, boundary conditions, empty array handling, null/undefined coalescing
+
+---
+
 ## For Recent Changes
 
 **CRITICAL: MUST read the actual modified files (not just diff summary)**
 
-1. Get list of changed files:
+1. **Ask for relevant specs and tasks** via AskUserQuestion:
+   "What specs or tasks are these changes related to?"
+   - Provide spec file path(s) and/or task ID(s)
+   - Leave blank if no specific task/spec
+
+2. **If user provided specs/tasks:**
+   - Read the spec file(s) - understand requirements and acceptance criteria
+   - Read the task(s) - note acceptance criteria and specReference
+   - **Keep spec requirements and acceptance criteria in mind for verification in step 5**
+
+3. Get list of changed files:
    \`git diff --name-only\` and \`git diff --cached --name-only\`
 
-2. **READ THE ACTUAL CODE:**
+4. **READ THE ACTUAL CODE:**
    - Read each modified file in its entirety
    - Understand what changed and WHY
    - Analyze the logic and implementation
    - Compare against conventions.md for style adherence
 
-3. **Code Analysis - OUTPUT REQUIRED:**
+5. **Code Analysis - OUTPUT REQUIRED:**
    \`\`\`
    📝 Code Review:
    Files: [list with line ranges if partial]
@@ -53,22 +82,39 @@ Ask user what to review:
    - Affects other components: [what impact]
    \`\`\`
 
-4. **Common Backend Issues - MUST CHECK:**
-   - **Database**: N+1 queries, missing indexes, connection pool exhaustion, unclosed connections, transaction deadlocks, missing pagination on large queries
-   - **Error Handling**: Unhandled exceptions, silent failures, generic error messages, missing try-catch blocks, improper async error handling, missing null checks
-   - **Performance**: Blocking operations in async code, missing caching, inefficient algorithms, large unbatched requests, missing timeouts
-   - **Resource Management**: Memory leaks, resource leaks, missing cleanup in finally/finally blocks, circular dependencies
-   - **API Security**: Missing input validation, missing rate limiting, missing authentication/authorization checks, exposed error details, missing CORS validation
-   - **Race Conditions**: Multiple concurrent requests to shared state, improper locking, stale data reads
+6. **Verify Against Spec & Acceptance Criteria** (if user provided specs/tasks in step 2):
+   \`\`\`
+   📋 Spec & Acceptance Criteria Verification:
 
-5. **Common Frontend Issues - MUST CHECK:**
-   - **Type Safety**: TypeScript violations (any types, missing null checks, unsafe casts), runtime type errors
-   - **State Management**: Stale closures, infinite loops/recursion, circular state updates, missing state synchronization
-   - **React-specific**: Missing dependency arrays in useEffect/useCallback, infinite rendering loops, missing keys in lists, improper prop drilling, memory leaks from subscriptions
-   - **Async Issues**: Unhandled promise rejections, missing error boundaries, race conditions from concurrent requests, callback hell
-   - **Edge Cases**: Off-by-one errors, boundary conditions, empty array handling, null/undefined coalescing
+   Spec: [filename]
+   Task: [task ID if applicable]
 
-6. Cross-reference with active tasks (from project memory context)
+   Requirements vs Implementation:
+   - Requirement 1: [implemented correctly / partially / missing / extra code not in spec]
+   - Requirement 2: [status]
+   - [... all spec requirements checked ...]
+
+   Acceptance Criteria Compliance:
+   - Criterion 1: [met / not met]
+   - Criterion 2: [met / not met]
+   - [... all acceptance criteria checked ...]
+
+   Inconsistencies Found:
+   - [Severity]: [specific inconsistency between code and spec/criteria]
+   - [Severity]: [next issue]
+   \`\`\`
+
+   **Flag any:**
+   - Missing features from spec
+   - Extra code not in spec requirements
+   - Failed acceptance criteria
+   - Code that contradicts spec design
+
+7. **Check Critical Issues** (see "Critical Issues to Check" section above)
+   - Apply all backend and frontend issue checks to modified files
+   - Note any issues found by category
+
+8. Cross-reference with active tasks (from project memory context)
 
 ---
 
@@ -98,13 +144,10 @@ Ask user what to review:
    - Technical debt: [areas needing attention]
    \`\`\`
 
-3. **Systematic check for common issues:**
-   - Database queries (N+1, pagination, indexes, connections)
-   - Error handling (unhandled exceptions, silent failures)
-   - Type safety (TypeScript, null checks)
-   - Resource management (leaks, cleanup)
-   - Edge cases (boundaries, empty states, null coalescing)
-   - Concurrency (race conditions, locks)
+3. **Apply Critical Issues checklist** (see "Critical Issues to Check" section above)
+   - Check all backend issues across entire codebase
+   - Check all frontend issues across entire codebase
+   - Categorize findings by severity
 
 4. List critical issues found
 
@@ -114,16 +157,35 @@ Ask user what to review:
 
 **CRITICAL: READ all files in the specified path**
 
-1. Get user-selected file/directory path
-2. Read all source files in that area
-3. Analyze: logic, quality, security, architectural fit
-4. Compare against conventions and architecture
-5. Check for common issues specific to the area:
-   - Backend endpoints: error handling, validation, timeouts, N+1 queries, proper HTTP codes
-   - Database code: connection management, query efficiency, indexes, pagination
-   - Frontend components: type safety, state management, renders, memory leaks
-   - Async code: error handling, race conditions, cancellation
-   - Configuration: hardcoded values, secrets, environment variables
+1. **Ask for relevant specs and tasks** via AskUserQuestion:
+   "What specs or tasks are these changes related to?"
+   - Provide spec file path(s) and/or task ID(s)
+   - Leave blank if no specific task/spec
+
+2. **If user provided specs/tasks:**
+   - Read the spec file(s) - understand requirements and acceptance criteria
+   - Read the task(s) - note acceptance criteria and specReference
+   - **Keep spec requirements and acceptance criteria in mind for verification in step 6**
+
+3. Get user-selected file/directory path
+4. Read all source files in that area
+5. Analyze: logic, quality, security, architectural fit
+6. Compare against conventions and architecture
+7. **Verify Against Spec & Acceptance Criteria** (if user provided specs/tasks in step 2):
+   - Check if implementation matches all spec requirements
+   - Verify all acceptance criteria are met
+   - Flag missing features, extra code, failed criteria, or contradictions
+   - Provide detailed inconsistency report (see format in "For Recent Changes" section)
+
+8. **Apply Critical Issues checklist** (see "Critical Issues to Check" section above)
+   - Check all backend issues relevant to area
+   - Check all frontend issues relevant to area
+9. Identify area-specific concerns:
+   - Backend endpoints: error handling, validation, timeouts, proper HTTP codes
+   - Database code: connection management, query efficiency, pagination
+   - Frontend components: renders, component composition
+   - Async code: cancellation, cleanup
+   - Configuration: hardcoded values, secrets
 
 ---
 
