@@ -128,6 +128,11 @@ impediment: [if blocked, describe blocker]
      * Determine status: completed / in-progress / blocked / outdated
    - Identify tasks that contradict current code
    - Mark inconsistencies with severity and required action
+   - **IF code issues found (bugs, security, architecture violations):**
+     * **DO NOT fix the code**
+     * Note the issue clearly (file, line, type, severity)
+     * Continue with sync validation
+     * Report issues to user and request project memory review before code fixes
    - If ANY task progress changes found → propose status updates
 
    **Check Spec System - CRITICAL:**
@@ -235,6 +240,13 @@ impediment: [if blocked, describe blocker]
 - Specs are contracts - stale specs lead to broken implementations
 - Every sync should verify specs match current implementation status
 - Always output spec implementation status for all reviewed specs
+
+**Code issues discovered during sync:**
+- **DO NOT attempt to fix code issues**
+- **DO bring issues to user attention immediately** (security, bugs, architecture violations)
+- **Request project memory review** using the review tool with user approval
+- Sync focuses on documentation/metadata - code fixes require dedicated review and approval
+- Create issue report via AskUserQuestion if critical issues found
 
 **Documentation conciseness:**
 - Keep all .md files concise (≤100 lines)
