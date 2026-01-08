@@ -13,6 +13,7 @@ import { REVIEW_PROMPT } from './prompts/review-prompt.js';
 import { SYNC_PROMPT } from './prompts/sync-prompt.js';
 import { CREATE_SPEC_PROMPT } from './prompts/create-spec-prompt.js';
 import { REFRESH_PROMPTS_PROMPT } from './prompts/refresh-prompts-prompt.js';
+import { IMPLEMENT_FEATURE_PROMPT } from './prompts/implement-feature-prompt.js';
 import { composePrompt, getProjectRoot, validatePromptLength } from './utils/prompt-loader.js';
 
 /**
@@ -89,6 +90,15 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         name: 'create-spec',
         description:
           'Create detailed specification from user requirements. Use this tool when: (1) user asks to create/write a spec, (2) user describes a feature they want to build, (3) user says "spec this" or "write a spec for". Clarifies ambiguity, validates against codebase, considers security/edge cases/tests, and writes spec to .project-memory/specs/.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'implement-feature',
+        description:
+          'Implement feature from spec and tasks with validation. Requires spec file and task reference. Audits codebase for code reuse, confirms any modifications with user, verifies task acceptance criteria aligns with spec, and re-checks spec before implementing each task.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -187,6 +197,12 @@ ${SYNC_PROMPT}
         // Create spec from user requirements or file content
         prompt = CREATE_SPEC_PROMPT;
         validatePromptLength(prompt, 'create-spec');
+        break;
+
+      case 'implement-feature':
+        // Implement feature from spec and tasks with validation and code reuse analysis
+        prompt = IMPLEMENT_FEATURE_PROMPT;
+        validatePromptLength(prompt, 'implement-feature');
         break;
 
       case 'refresh-prompts':
