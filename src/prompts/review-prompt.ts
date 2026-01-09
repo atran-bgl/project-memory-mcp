@@ -122,7 +122,18 @@ Ask user what to review:
 
 **CRITICAL: MUST read actual source files systematically**
 
-1. Audit all source files: read key files, scan others
+1. **Use Explore Agent for Codebase Scanning** (Recommended for efficiency)
+
+   Launch the Explore agent to systematically scan the codebase:
+   - Task type: Use "Explore" agent (subagent_type: 'Explore')
+   - Thoroughness: Use 'very thorough' for comprehensive analysis
+   - Search for:
+     * File structure and organization
+     * Key architecture patterns and modules
+     * Common issues (N+1 queries, error handling, type safety)
+     * Security patterns (hardcoded secrets, validation, auth)
+     * Testing coverage and patterns
+   - Ask Explore agent: "Provide codebase overview with file structure, architecture patterns, and identify potential issues across backend/frontend"
 
 2. **Codebase Analysis - OUTPUT REQUIRED:**
    \`\`\`
@@ -168,19 +179,27 @@ Ask user what to review:
    - **Keep spec requirements and acceptance criteria in mind for verification in step 6**
 
 3. Get user-selected file/directory path
-4. Read all source files in that area
-5. Analyze: logic, quality, security, architectural fit
-6. Compare against conventions and architecture
-7. **Verify Against Spec & Acceptance Criteria** (if user provided specs/tasks in step 2):
+
+4. **Use Explore Agent for Targeted Scanning** (Optional, for efficiency)
+
+   For larger areas, consider using Explore agent:
+   - Task type: Use "Explore" agent (subagent_type: 'Explore')
+   - Thoroughness: Use 'medium' for focused exploration
+   - Query: "Explore [user-provided path] and identify: file structure, key functions/components, potential issues"
+
+5. Read all source files in that area
+6. Analyze: logic, quality, security, architectural fit
+7. Compare against conventions and architecture
+8. **Verify Against Spec & Acceptance Criteria** (if user provided specs/tasks in step 2):
    - Check if implementation matches all spec requirements
    - Verify all acceptance criteria are met
    - Flag missing features, extra code, failed criteria, or contradictions
    - Provide detailed inconsistency report (see format in "For Recent Changes" section)
 
-8. **Apply Critical Issues checklist** (see "Critical Issues to Check" section above)
+9. **Apply Critical Issues checklist** (see "Critical Issues to Check" section above)
    - Check all backend issues relevant to area
    - Check all frontend issues relevant to area
-9. Identify area-specific concerns:
+10. Identify area-specific concerns:
    - Backend endpoints: error handling, validation, timeouts, proper HTTP codes
    - Database code: connection management, query efficiency, pagination
    - Frontend components: renders, component composition
