@@ -1,5 +1,46 @@
 # Claude Assistant Configuration for project-memory-mcp
 
+## Project Memory System - CRITICAL
+
+This project uses `.project-memory/` for AI-managed task and context tracking.
+
+**REQUIRED AT EVERY SESSION START - DO NOT SKIP:**
+
+Before working on ANY task, you MUST read these files in order:
+
+1. `.project-memory/tasks/tasks-active.json`
+   - **Why:** Know what work is in progress and what's pending
+   - **Read:** ALL active tasks before starting any work
+
+2. `.project-memory/architecture.md`
+   - **Why:** Understand system design and component interactions
+   - **Read:** Before making architectural decisions
+
+3. `.project-memory/conventions.md`
+   - **Why:** Follow existing code patterns and standards
+   - **Read:** Before writing any code
+
+4. `.project-memory/useful-commands.md`
+   - **Why:** Use correct commands for dev/build/test
+   - **Read:** Before running any commands
+
+5. `.project-memory/prompts/base.md`
+   - **Why:** Full workflow instructions and rules
+   - **Read:** For understanding project memory system
+
+**Failure to read these files will result in:**
+- Duplicate work (tasks already in progress)
+- Incorrect implementations (violating architecture/conventions)
+- Build/test failures (using wrong commands)
+
+**Use proactively:**
+- `project-memory parse-tasks` - Parse tasks from new specs
+- `project-memory review` - Before commits
+- `project-memory sync` - After commits
+- `project-memory create-spec` - Create specifications from requirements
+
+---
+
 ## Project Overview
 
 This is an MCP (Model Context Protocol) server that acts as a **pure prompt provider** for AI-driven project memory management. It never touches files directly - only returns instructions for Claude to execute.

@@ -98,7 +98,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'implement-feature',
         description:
-          'Implement feature from spec and tasks with validation. Requires spec file and task reference. Audits codebase for code reuse, confirms any modifications with user, verifies task acceptance criteria aligns with spec, and re-checks spec before implementing each task.',
+          'Use this tool when: (1) user asks to implement a feature from a spec, (2) user wants to implement tasks from specifications, (3) user says "implement from spec", "code from spec", "build from spec", or "implement this spec". Requires spec file and task reference. Audits codebase for code reuse, confirms any modifications with user, verifies task acceptance criteria aligns with spec, and re-checks spec before implementing each task.',
         inputSchema: {
           type: 'object',
           properties: {},
