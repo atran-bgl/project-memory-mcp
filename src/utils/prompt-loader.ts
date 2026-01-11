@@ -1,11 +1,19 @@
 import { promises as fs } from 'fs';
 import { join } from 'path';
+import { TASK_JSON_SCHEMA } from '../schemas/task-schema.js';
 
 /**
  * Maximum lines allowed for overall composed prompts to prevent context bloat
  * Composed prompts = base.md (optional) + specific prompt (e.g., sync.md)
  */
 export const MAX_PROMPT_LINES = 400;
+
+/**
+ * Prompt placeholders that get replaced with actual content
+ */
+const PROMPT_PLACEHOLDERS = {
+  TASK_SCHEMA: TASK_JSON_SCHEMA,
+} as const;
 
 /**
  * Validates that the final composed prompt does not exceed the line limit
@@ -21,8 +29,22 @@ export function validatePromptLength(content: string, filename: string): void {
 }
 
 /**
+ * Injects placeholders into prompt content
+ * Replaces [PLACEHOLDER_NAME] with actual content from PROMPT_PLACEHOLDERS
+ */
+function injectPlaceholders(content: string): string {
+  let result = content;
+  for (const [placeholder, value] of Object.entries(PROMPT_PLACEHOLDERS)) {
+    const regex = new RegExp(`\\[${placeholder}\\]`, 'g');
+    result = result.replace(regex, value);
+  }
+  return result;
+}
+
+/**
  * Reads a prompt file from .project-memory/prompts/
  * Returns null if file doesn't exist
+ * Injects placeholders with actual content (e.g., [TASK_SCHEMA])
  */
 export async function readPromptFile(
   projectRoot: string,
@@ -32,8 +54,9 @@ export async function readPromptFile(
 
   try {
     const content = await fs.readFile(promptPath, 'utf-8');
-    validatePromptLength(content, filename);
-    return content;
+    const withPlaceholders = injectPlaceholders(content);
+    validatePromptLength(withPlaceholders, filename);
+    return withPlaceholders;
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
       return null;
