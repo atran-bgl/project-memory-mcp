@@ -24,7 +24,21 @@ All operations are performed by Claude using its Read, Write, Edit, and Bash too
 
 ## Installation
 
-Install globally from GitHub:
+### Option 1: Install from GitHub Release (Recommended)
+
+Download and install the latest release:
+
+```bash
+npm install -g https://github.com/atran-bgl/project-memory-mcp/releases/latest/download/atran-bgl-project-memory-mcp-0.1.2.tgz
+```
+
+Or install a specific version:
+
+```bash
+npm install -g https://github.com/atran-bgl/project-memory-mcp/releases/download/v0.1.2/atran-bgl-project-memory-mcp-0.1.2.tgz
+```
+
+### Option 2: Install from Source
 
 ```bash
 npm install -g git+https://github.com/atran-bgl/project-memory-mcp.git
