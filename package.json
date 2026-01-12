@@ -1,54 +1,54 @@
 {
-  "name": "@annatran/project-memory-mcp",
-  "version": "0.1.0",
-  "description": "MCP server for AI-driven project memory management - pure prompt provider",
-  "type": "module",
-  "main": "dist/index.js",
-  "bin": {
-    "project-memory-mcp": "./dist/index.js"
-  },
-  "scripts": {
-    "build": "tsc",
-    "watch": "tsc --watch",
-    "dev": "tsx src/index.ts",
-    "test": "vitest",
-    "lint": "eslint src --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\"",
-    "prepublishOnly": "npm run build"
-  },
-  "keywords": [
-    "mcp",
-    "model-context-protocol",
-    "project-memory",
-    "ai-agent",
-    "claude",
-    "task-management"
-  ],
-  "author": "Anna Tran",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/misaamane21j/project-memory-mcp.git"
-  },
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^0.5.0"
-  },
-  "devDependencies": {
-    "@types/node": "^20.10.0",
-    "@typescript-eslint/eslint-plugin": "^6.13.0",
-    "@typescript-eslint/parser": "^6.13.0",
-    "eslint": "^8.54.0",
-    "prettier": "^3.1.0",
-    "tsx": "^4.7.0",
-    "typescript": "^5.3.0",
-    "vitest": "^1.0.0"
-  },
-  "engines": {
-    "node": ">=18.0.0"
-  }
+	"name": "@atran/project-memory-mcp",
+	"version": "0.1.0",
+	"description": "MCP server for AI-driven project memory management - pure prompt provider",
+	"type": "module",
+	"main": "dist/index.js",
+	"bin": {
+		"project-memory-mcp": "./dist/index.js"
+	},
+	"scripts": {
+		"build": "tsc",
+		"watch": "tsc --watch",
+		"dev": "tsx src/index.ts",
+		"test": "vitest",
+		"lint": "eslint src --ext .ts",
+		"format": "prettier --write \"src/**/*.ts\"",
+		"prepublishOnly": "npm run build"
+	},
+	"keywords": [
+		"mcp",
+		"model-context-protocol",
+		"project-memory",
+		"ai-agent",
+		"claude",
+		"task-management"
+	],
+	"author": "Anna Tran",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/atran-bgl/project-memory-mcp.git"
+	},
+	"files": [
+		"dist",
+		"README.md",
+		"LICENSE"
+	],
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "^0.5.0"
+	},
+	"devDependencies": {
+		"@types/node": "^20.10.0",
+		"@typescript-eslint/eslint-plugin": "^6.13.0",
+		"@typescript-eslint/parser": "^6.13.0",
+		"eslint": "^8.54.0",
+		"prettier": "^3.1.0",
+		"tsx": "^4.7.0",
+		"typescript": "^5.3.0",
+		"vitest": "^1.0.0"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	}
 }
