@@ -26,16 +26,18 @@ All operations are performed by Claude using its Read, Write, Edit, and Bash too
 
 ### Option 1: Install from GitHub Release (Recommended)
 
-Download and install the latest release:
+1. Go to [Releases](https://github.com/atran-bgl/project-memory-mcp/releases)
+2. Download the latest `.tgz` file
+3. Install it:
 
 ```bash
-npm install -g https://github.com/atran-bgl/project-memory-mcp/releases/latest/download/atran-bgl-project-memory-mcp-0.1.2.tgz
+npm install -g /path/to/downloaded/atran-bgl-project-memory-mcp-VERSION.tgz
 ```
 
-Or install a specific version:
+Or install directly from a specific release URL:
 
 ```bash
-npm install -g https://github.com/atran-bgl/project-memory-mcp/releases/download/v0.1.2/atran-bgl-project-memory-mcp-0.1.2.tgz
+npm install -g https://github.com/atran-bgl/project-memory-mcp/releases/download/v0.1.3/atran-bgl-project-memory-mcp-0.1.3.tgz
 ```
 
 ### Option 2: Install from Source
