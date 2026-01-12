@@ -1,5 +1,5 @@
 {
-	"name": "@atran/project-memory-mcp",
+	"name": "@atran-bgl/project-memory-mcp",
 	"version": "0.1.0",
 	"description": "MCP server for AI-driven project memory management - pure prompt provider",
 	"type": "module",
