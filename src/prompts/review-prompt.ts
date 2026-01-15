@@ -59,13 +59,37 @@ Ask user what to review:
 3. Get list of changed files:
    \`git diff --name-only\` and \`git diff --cached --name-only\`
 
-4. **READ THE ACTUAL CODE:**
+4. **CHECK FOR DEPENDENCY VULNERABILITIES:**
+
+   **If dependency files modified** (package.json, requirements.txt, Cargo.toml, go.mod, etc.):
+
+   a) Run \`git diff package.json\` (or equivalent) - extract changed packages
+
+   b) **Check vulnerabilities:**
+      - npm: Run \`npm audit\` + WebFetch \`https://registry.npmjs.org/[pkg]\`
+      - Python: WebFetch \`https://pypi.org/pypi/[pkg]/json\`
+      - Rust: WebFetch \`https://crates.io/api/v1/crates/[pkg]\`
+
+   c) **Output:**
+      \`\`\`
+      🔒 Dependency Security:
+      - [pkg@ver]: [VULNERABLE/OUTDATED/SAFE] - [CVE/details]
+        Severity: [CRITICAL/HIGH/MODERATE/LOW] - Fix: [version]
+
+      Summary: [X critical, Y high] - Action: [BLOCK/proceed]
+      \`\`\`
+
+   d) If CRITICAL/HIGH found → Flag as BLOCKING issue
+
+   **If no dependency changes:** "✅ No dependency changes"
+
+5. **READ THE ACTUAL CODE:**
    - Read each modified file in its entirety
    - Understand what changed and WHY
    - Analyze the logic and implementation
    - Compare against conventions.md for style adherence
 
-5. **Code Analysis - OUTPUT REQUIRED:**
+6. **Code Analysis - OUTPUT REQUIRED:**
    \`\`\`
    📝 Code Review:
    Files: [list with line ranges if partial]
@@ -73,7 +97,7 @@ Ask user what to review:
    Implementation Quality:
    - Logic correctness: [assessment]
    - Potential bugs: [list any found]
-   - Security issues: [hardcoded secrets, .env, API keys, SQL injection, XSS, etc.]
+   - Security issues: [hardcoded secrets, .env, API keys, SQL injection, XSS, dependency vulnerabilities (see step 4), etc.]
    - Code style: [adheres to conventions? yes/no + issues]
 
    Architectural Impact:
@@ -82,7 +106,7 @@ Ask user what to review:
    - Affects other components: [what impact]
    \`\`\`
 
-6. **Verify Against Spec & Acceptance Criteria** (if user provided specs/tasks in step 2):
+7. **Verify Against Spec & Acceptance Criteria** (if user provided specs/tasks in step 2):
    \`\`\`
    📋 Spec & Acceptance Criteria Verification:
 
@@ -110,11 +134,11 @@ Ask user what to review:
    - Failed acceptance criteria
    - Code that contradicts spec design
 
-7. **Check Critical Issues** (see "Critical Issues to Check" section above)
+8. **Check Critical Issues** (see "Critical Issues to Check" section above)
    - Apply all backend and frontend issue checks to modified files
    - Note any issues found by category
 
-8. Cross-reference with active tasks (from project memory context)
+9. Cross-reference with active tasks (from project memory context)
 
 ---
 

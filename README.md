@@ -40,11 +40,45 @@ Or install directly from a specific release URL:
 npm install -g https://github.com/atran-bgl/project-memory-mcp/releases/download/v0.1.3/atran-bgl-project-memory-mcp-0.1.3.tgz
 ```
 
-### Option 2: Install from Source
+## Updating
+
+### Update to Latest Version
+
+1. Uninstall the current version:
 
 ```bash
-npm install -g git+https://github.com/atran-bgl/project-memory-mcp.git
+npm uninstall -g @atran-bgl/project-memory-mcp
 ```
+
+2. Download and install the latest release from [Releases](https://github.com/atran-bgl/project-memory-mcp/releases):
+
+```bash
+npm install -g https://github.com/atran-bgl/project-memory-mcp/releases/download/vX.X.X/atran-bgl-project-memory-mcp-X.X.X.tgz
+```
+
+Replace `vX.X.X` and `X.X.X` with the actual version number.
+
+3. Restart Claude Desktop or Claude Code CLI to reload the MCP server
+
+4. (Optional) Refresh your project prompts to get latest template improvements:
+
+```
+"Refresh project memory prompts"
+```
+
+This will merge new template improvements while preserving your project-specific customizations.
+
+### Uninstall
+
+To completely remove the MCP server:
+
+```bash
+npm uninstall -g @atran-bgl/project-memory-mcp
+```
+
+Then remove the MCP server configuration from your Claude config file:
+- Claude Desktop: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Claude Code CLI: `~/.claude.json`
 
 ## Setup
 

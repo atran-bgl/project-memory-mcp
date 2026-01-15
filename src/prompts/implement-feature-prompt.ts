@@ -15,6 +15,33 @@ Before writing ANY code:
 
 ---
 
+## Step 0: Load Project Context - MANDATORY
+
+**Before implementing any feature, you MUST have current project context.**
+
+Read these files NOW if you haven't this session:
+1. \`.project-memory/prompts/base.md\` - Core rules (Documentation ≤100 lines, Security: no hardcoded secrets, Task Completion criteria, Implementation: break down large features)
+2. \`.project-memory/conventions.md\` - Code patterns, style guides, standards to follow
+3. \`.project-memory/useful-commands.md\` - Available dev/build/test commands
+4. \`.project-memory/architecture.md\` - Current system structure and components
+
+**Verification Required - Output this:**
+\`\`\`
+✅ Project Context Loaded:
+- Base Rules: [list 2-3 critical rules from base.md]
+- Conventions: [list 2-3 key patterns from conventions.md]
+- Commands: [list 2-3 key commands from useful-commands.md]
+- Architecture: [list 2-3 key components from architecture.md]
+\`\`\`
+
+**CRITICAL: If you cannot list specifics from each file, you MUST read them now.**
+
+Implementing without this context will violate project standards and patterns.
+
+Do not proceed to Step 1 until you've verified and outputted the above.
+
+---
+
 ## Step 1: Get Spec & Task Reference
 
 **REQUIRED - Ask via AskUserQuestion:**
@@ -64,7 +91,60 @@ Before writing ANY code:
 
 ---
 
-## Step 3: Audit Codebase for Reusable Code
+## Step 3: Check Tech Stack & Dependencies
+
+**MANDATORY: Verify new dependencies and compatibility before implementation.**
+
+1. **Identify if feature requires new tech stack/libraries:**
+   - Review spec requirements (from Step 2)
+   - Check if existing project dependencies can handle the feature
+   - List any new libraries, frameworks, or tools needed
+
+2. **If new dependencies required:**
+
+   **a) Fetch latest versions using WebFetch:**
+   - For npm packages: Use WebFetch on \`https://registry.npmjs.org/[package-name]/latest\`
+   - For other ecosystems: Use appropriate registry (PyPI, RubyGems, crates.io, etc.)
+   - Get: Latest stable version, release date, description
+   - Example: "Checking latest version of 'zod' for schema validation"
+
+   **b) Check compatibility with existing project:**
+   - Read \`package.json\` (or \`requirements.txt\`, \`Cargo.toml\`, \`go.mod\`, etc.)
+   - Identify existing dependency versions (Node, Python, framework versions)
+   - Use WebFetch to check new package compatibility:
+     - Check package documentation for version requirements
+     - Check for peer dependency conflicts
+     - Verify compatibility with current runtime version
+
+   **c) Output findings:**
+   \`\`\`
+   📦 Dependencies Analysis:
+
+   Proposed: [package-name@version]
+   Latest Version: [version from registry]
+   Purpose: [why needed for this feature]
+
+   Compatibility Check:
+   ✅ Compatible with Node [current-version]
+   ✅ Compatible with [existing-framework@version]
+   ⚠️ Requires peer dependency: [package@version]
+   ❌ Conflicts with [existing-package] - requires migration
+
+   Recommendation: [proceed / needs resolution / consider alternative]
+   \`\`\`
+
+   **d) If conflicts found:**
+   - Ask via AskUserQuestion: "Dependency conflict detected. How should we proceed?"
+     - Options: "Use alternative package" / "Plan migration strategy" / "Reconsider implementation approach"
+
+3. **If no new dependencies needed:**
+   - Output: "✅ Feature can be implemented with existing tech stack"
+
+**CHECKPOINT:** Resolve all dependency issues before proceeding to codebase audit.
+
+---
+
+## Step 4: Audit Codebase for Reusable Code
 
 **CRITICAL: Find existing functions/methods that can be reused or adapted**
 
@@ -110,7 +190,7 @@ Summary:
 
 ---
 
-## Step 4: Propose Code Reuse & Modifications
+## Step 5: Propose Code Reuse & Modifications
 
 **Ask user confirmation for any reuse or modifications**
 
@@ -156,7 +236,7 @@ New functions to write:
 
 ---
 
-## Step 5: Verify Task Acceptance Criteria Aligns with Spec
+## Step 6: Verify Task Acceptance Criteria Aligns with Spec
 
 **Before implementing each task, confirm acceptance criteria matches spec**
 
@@ -199,7 +279,7 @@ Status: ✅ Ready to implement
 
 ---
 
-## Step 6: Implement Feature
+## Step 7: Implement Feature
 
 **NOW implement, with spec alignment checks per task**
 

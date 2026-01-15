@@ -12,6 +12,31 @@ Create detailed, actionable spec from user requirements, validated against exist
 
 ---
 
+## Step 0: Load Project Context - MANDATORY
+
+**Before creating any spec, you MUST have current project context.**
+
+Read these files NOW if you haven't this session:
+1. \`.project-memory/prompts/base.md\` - Core rules (Documentation ≤100 lines, Security: no hardcoded secrets, Task Completion criteria, Implementation: break down large features)
+2. \`.project-memory/conventions.md\` - Code patterns, style guides, standards
+3. \`.project-memory/useful-commands.md\` - Available dev/build/test commands
+4. \`.project-memory/architecture.md\` - Current system structure and components
+
+**Verification Required - Output this:**
+\`\`\`
+✅ Project Context Loaded:
+- Base Rules: [list 2-3 critical rules from base.md]
+- Conventions: [list 2-3 key patterns from conventions.md]
+- Commands: [list 2-3 key commands from useful-commands.md]
+- Architecture: [list 2-3 key components from architecture.md]
+\`\`\`
+
+**CRITICAL: If you cannot list specifics from each file, you MUST read them now.**
+
+Do not proceed to Step 1 until you've verified and outputted the above.
+
+---
+
 ## Step 1: Initialize & Sync Project Memory
 
 **REQUIRED - Do NOT skip:**
@@ -76,7 +101,60 @@ Create one comprehensive spec ≤200 lines
 
 ---
 
-## Step 4: Analyze Existing Codebase
+## Step 4: Check Tech Stack & Dependencies
+
+**MANDATORY: Verify new dependencies and compatibility before spec creation.**
+
+1. **Identify if feature requires new tech stack/libraries:**
+   - Review requirements from Step 3
+   - Check if existing project dependencies can handle the feature
+   - List any new libraries, frameworks, or tools needed
+
+2. **If new dependencies required:**
+
+   **a) Fetch latest versions using WebFetch:**
+   - For npm packages: Use WebFetch on \`https://registry.npmjs.org/[package-name]/latest\`
+   - For other ecosystems: Use appropriate registry (PyPI, RubyGems, crates.io, etc.)
+   - Get: Latest stable version, release date, description
+   - Example: "Checking latest version of 'express-rate-limit' for API rate limiting"
+
+   **b) Check compatibility with existing project:**
+   - Read \`package.json\` (or \`requirements.txt\`, \`Cargo.toml\`, \`go.mod\`, etc.)
+   - Identify existing dependency versions (Node, Python, framework versions)
+   - Use WebFetch to check new package compatibility:
+     - Check package documentation for version requirements
+     - Check for peer dependency conflicts
+     - Verify compatibility with current runtime version
+
+   **c) Output findings:**
+   \`\`\`
+   📦 New Dependencies Analysis:
+
+   Proposed: [package-name@version]
+   Latest Version: [version from registry]
+   Purpose: [why needed]
+
+   Compatibility Check:
+   ✅ Compatible with Node [current-version]
+   ✅ Compatible with [existing-framework@version]
+   ⚠️ Requires peer dependency: [package@version]
+   ❌ Conflicts with [existing-package] - requires migration
+
+   Recommendation: [proceed / needs resolution / consider alternative]
+   \`\`\`
+
+   **d) If conflicts found:**
+   - Ask via AskUserQuestion: "Dependency conflict detected. How should we proceed?"
+     - Options: "Use alternative package" / "Plan migration strategy" / "Reconsider feature approach"
+
+3. **If no new dependencies needed:**
+   - Output: "✅ Feature can be implemented with existing tech stack"
+
+**CHECKPOINT:** Resolve all dependency issues before proceeding to codebase analysis.
+
+---
+
+## Step 5: Analyze Existing Codebase
 
 **CRITICAL: Validate requirements against actual code implementation.**
 
@@ -107,7 +185,7 @@ Create one comprehensive spec ≤200 lines
 
 ---
 
-## Step 5: Design Specification Content
+## Step 6: Design Specification Content
 
 ### For SINGLE SPEC (≤200 lines):
 
@@ -191,7 +269,7 @@ Create one comprehensive spec ≤200 lines
 
 ---
 
-## Step 6: Validate Spec Against Codebase
+## Step 7: Validate Spec Against Codebase
 
 **REQUIRED validation:**
 1. **Architecture alignment:** Does design match existing patterns?
@@ -211,7 +289,7 @@ Create one comprehensive spec ≤200 lines
 
 ---
 
-## Step 7: Write Spec File(s)
+## Step 8: Write Spec File(s)
 
 After approval:
 
@@ -265,7 +343,7 @@ After approval:
 
 ---
 
-## Step 8: Parse Tasks (Optional)
+## Step 9: Parse Tasks (Optional)
 
 Ask user via AskUserQuestion: "Spec(s) created. Parse tasks now?"
 

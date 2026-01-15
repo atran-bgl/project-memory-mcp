@@ -14,7 +14,7 @@ import { SYNC_PROMPT } from './prompts/sync-prompt.js';
 import { CREATE_SPEC_PROMPT } from './prompts/create-spec-prompt.js';
 import { REFRESH_PROMPTS_PROMPT } from './prompts/refresh-prompts-prompt.js';
 import { IMPLEMENT_FEATURE_PROMPT } from './prompts/implement-feature-prompt.js';
-import { composePrompt, getProjectRoot, validatePromptLength } from './utils/prompt-loader.js';
+import { composePrompt, getProjectRoot, readPromptFile, validatePromptLength } from './utils/prompt-loader.js';
 
 /**
  * Project Memory MCP Server
@@ -137,6 +137,22 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {},
         },
       },
+      {
+        name: 'get-new-create-spec-prompt',
+        description: 'Get the new create-spec.md template. Called during init or refresh-prompts to fetch the latest create-spec prompt template.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'get-new-implement-feature-prompt',
+        description: 'Get the new implement-feature.md template. Called during init or refresh-prompts to fetch the latest implement-feature prompt template.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
     ],
   };
 });
@@ -153,26 +169,9 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
 
     switch (name) {
       case 'init':
-        // Compose init prompt with fallback templates for Claude to use as starting points
-        prompt = `${INIT_PROMPT}
-
----
-
-## FALLBACK PROMPT TEMPLATES
-
-Use these as starting templates - write them to .project-memory/prompts/, then customize in Step 4:
-
-### Template for parse-tasks.md:
-${PARSE_TASKS_PROMPT}
-
-### Template for review.md:
-${REVIEW_PROMPT}
-
-### Template for sync.md:
-${SYNC_PROMPT}
-`;
-        // Init prompt includes templates, so it may exceed normal limit - this is acceptable
-        validatePromptLength(prompt, 'init (with templates)');
+        // Init prompt instructs Claude to fetch templates via get-new-* tools
+        prompt = INIT_PROMPT;
+        validatePromptLength(prompt, 'init');
         break;
 
       case 'parse-tasks':
@@ -194,14 +193,16 @@ ${SYNC_PROMPT}
         break;
 
       case 'create-spec':
-        // Create spec from user requirements or file content
-        prompt = CREATE_SPEC_PROMPT;
+        // Create spec from user requirements, uses project-specific prompt if available
+        const createSpecPrompt = await readPromptFile(projectRoot, 'create-spec.md');
+        prompt = createSpecPrompt || CREATE_SPEC_PROMPT;
         validatePromptLength(prompt, 'create-spec');
         break;
 
       case 'implement-feature':
-        // Implement feature from spec and tasks with validation and code reuse analysis
-        prompt = IMPLEMENT_FEATURE_PROMPT;
+        // Implement feature from spec and tasks, uses project-specific prompt if available
+        const implementFeaturePrompt = await readPromptFile(projectRoot, 'implement-feature.md');
+        prompt = implementFeaturePrompt || IMPLEMENT_FEATURE_PROMPT;
         validatePromptLength(prompt, 'implement-feature');
         break;
 
@@ -243,6 +244,30 @@ ${SYNC_PROMPT}
             {
               type: 'text',
               text: PARSE_TASKS_PROMPT,
+            },
+          ],
+        };
+
+      case 'get-new-create-spec-prompt':
+        // Return the new create-spec.md template for init or refresh
+        validatePromptLength(CREATE_SPEC_PROMPT, 'create-spec.md template');
+        return {
+          content: [
+            {
+              type: 'text',
+              text: CREATE_SPEC_PROMPT,
+            },
+          ],
+        };
+
+      case 'get-new-implement-feature-prompt':
+        // Return the new implement-feature.md template for init or refresh
+        validatePromptLength(IMPLEMENT_FEATURE_PROMPT, 'implement-feature.md template');
+        return {
+          content: [
+            {
+              type: 'text',
+              text: IMPLEMENT_FEATURE_PROMPT,
             },
           ],
         };
