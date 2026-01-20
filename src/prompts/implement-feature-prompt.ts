@@ -1,367 +1,326 @@
 /**
  * Implement feature from spec and tasks
- * Validates spec reference, checks for code reuse, confirms modifications before implementation
+ * 3-stage workflow: Planning → Implementation → Review & Fix
  */
 export const IMPLEMENT_FEATURE_PROMPT = `# Implement Feature
 
-**MANDATORY: Spec-driven implementation with codebase reuse analysis and user confirmation.**
-
-Before writing ANY code:
-1. Ask for spec file and task reference
-2. Validate spec exists and is clear
-3. Audit codebase for reusable code
-4. Confirm any modifications with user
-5. Verify task acceptance criteria aligns with spec
+**3-STAGE WORKFLOW: Planning → Implement → Review & Fix**
 
 ---
 
-## Step 0: Load Project Context - MANDATORY
+## STAGE 1: PLANNING (3 Steps)
 
-**Before implementing any feature, you MUST have current project context.**
+### Step 1: Load Context & Get Spec
 
-Read these files NOW if you haven't this session:
-1. \`.project-memory/prompts/base.md\` - Core rules (Documentation ≤100 lines, Security: no hardcoded secrets, Task Completion criteria, Implementation: break down large features)
-2. \`.project-memory/conventions.md\` - Code patterns, style guides, standards to follow
-3. \`.project-memory/useful-commands.md\` - Available dev/build/test commands
-4. \`.project-memory/architecture.md\` - Current system structure and components
+**A. Read project files (if you haven't this session):**
+1. \`.project-memory/prompts/base.md\` - Forbidden Actions, Business Logic Protection, UI/UX Protection
+2. \`.project-memory/conventions.md\` - Code Style Enforcement
+3. \`.project-memory/useful-commands.md\` - Dev/build/test commands
+4. \`.project-memory/architecture.md\` - System structure
 
-**Verification Required - Output this:**
+**Output:**
 \`\`\`
 ✅ Project Context Loaded:
-- Base Rules: [list 2-3 critical rules from base.md]
-- Conventions: [list 2-3 key patterns from conventions.md]
-- Commands: [list 2-3 key commands from useful-commands.md]
-- Architecture: [list 2-3 key components from architecture.md]
+
+FORBIDDEN ACTIONS (list ALL):
+- NO large refactors
+- NO dependency changes
+- NO config changes
+- NO business logic changes without approval
+- NO UI/UX changes without approval (frontend)
+- [... list all from base.md & conventions.md ...]
+
+Key conventions: [list 2-3 patterns]
+Key commands: [build/test/lint commands]
 \`\`\`
 
-**CRITICAL: If you cannot list specifics from each file, you MUST read them now.**
+**Commitment: I will NOT perform any forbidden actions. If I need to do something forbidden, I will STOP and ask via AskUserQuestion first.**
 
-Implementing without this context will violate project standards and patterns.
+**B. Get spec and validate:**
+- Ask user: spec file path + task reference
+- Read spec + \`.project-memory/tasks/tasks-active.json\`
+- Verify: spec clear? tasks have acceptance criteria?
 
-Do not proceed to Step 1 until you've verified and outputted the above.
+**Output:**
+\`\`\`
+✅ Spec Validated:
+- Spec: [file path]
+- Tasks: [TASK-ID: title, TASK-ID: title, ...]
+- All tasks have acceptance criteria: [yes/no]
+\`\`\`
 
 ---
 
-## Step 1: Get Spec & Task Reference
+### Step 2: Analyze & Plan
 
-**REQUIRED - Ask via AskUserQuestion:**
-"To implement this feature, I need:
-1. **Spec file path** - Where is the specification? (e.g., .project-memory/specs/feature-name.md)
-2. **Task reference** - What task(s) are we implementing? (e.g., TASK-001, or leave blank to work on single spec)"
+**A. Check dependencies:**
+- Review spec: does it require new packages/libraries?
+- If YES → STOP and ask via AskUserQuestion for approval
+- Output: "✅ Using existing stack" OR "❓ Need approval for [package@version]"
 
-**CHECKPOINT:** Wait for user to provide both
+**B. Audit for reusable code:**
+- Search codebase for similar features/functions (use Glob/Grep)
+- Identify what can be reused vs. needs new implementation
+- Output: "🔍 Reusable: [list]. New implementation: [list]"
 
----
-
-## Step 2: Validate Spec & Tasks
-
-**CRITICAL: Spec must be clear, tasks must have acceptance criteria and spec reference**
-
-1. **Read the spec file:**
-   - File must exist
-   - Must have clear: overview, requirements, technical design, security, edge cases, acceptance criteria
-   - Note: requirements, acceptance criteria, integration points
-
-2. **Read active tasks:**
-   - Run: \`cat .project-memory/tasks/tasks-active.json 2>/dev/null || echo "No tasks found"\`
-   - If task reference provided: Find task(s) with matching ID
-   - Verify each task has:
-     - ✅ Clear acceptance criteria
-     - ✅ **specReference** field linking to spec file
-     - ✅ Descriptive title and description
-   - If any task is missing acceptance criteria or spec reference:
-     - **STOP** and ask user via AskUserQuestion:
-     "Task [ID] is missing:
-     - Acceptance criteria: [yes/no]
-     - Spec reference: [yes/no]
-
-     Please update task before proceeding."
-
-3. **OUTPUT REQUIRED:**
-\`\`\`
-📋 Spec & Task Validation:
-- Spec: [filename] ✅
-- Spec status: [Clear/Needs clarification]
-- Tasks to implement: [TASK-XXX, ...]
-- Task acceptance criteria: ✅ [all present]
-- Task spec references: ✅ [all present]
-\`\`\`
-
-**CHECKPOINT:** All validations must pass before proceeding
+**C. Identify modifications:**
+- Will you modify existing files?
+- If YES → Ask via AskUserQuestion for approval: "Need to modify [files]: [describe changes]. Approve?"
+- Output: "✅ Modifications approved: [files]" OR "✅ Only new files"
 
 ---
 
-## Step 3: Check Tech Stack & Dependencies
+### Step 3: Create Implementation Plan with TodoWrite
 
-**MANDATORY: Verify new dependencies and compatibility before implementation.**
+**Use TodoWrite to create detailed task list.**
 
-1. **Identify if feature requires new tech stack/libraries:**
-   - Review spec requirements (from Step 2)
-   - Check if existing project dependencies can handle the feature
-   - List any new libraries, frameworks, or tools needed
+**Structure:**
 
-2. **If new dependencies required:**
+**For each task (in order):**
+- "Study code patterns for [TASK-ID]"
+  - MANDATORY: Find 2-3 similar files, document naming/structure/formatting
+- "Implement [TASK-ID]: [title]"
+  - Mental checklist: follows spec? DRY? no new patterns? protected areas checked?
+  - Verify acceptance criteria before marking complete
 
-   **a) Fetch latest versions using WebFetch:**
-   - For npm packages: Use WebFetch on \`https://registry.npmjs.org/[package-name]/latest\`
-   - For other ecosystems: Use appropriate registry (PyPI, RubyGems, crates.io, etc.)
-   - Get: Latest stable version, release date, description
-   - Example: "Checking latest version of 'zod' for schema validation"
+**Mid-point review (if 4+ tasks or high complexity):**
+- "Mid-point self-reflect - call project-memory self-reflect"
 
-   **b) Check compatibility with existing project:**
-   - Read \`package.json\` (or \`requirements.txt\`, \`Cargo.toml\`, \`go.mod\`, etc.)
-   - Identify existing dependency versions (Node, Python, framework versions)
-   - Use WebFetch to check new package compatibility:
-     - Check package documentation for version requirements
-     - Check for peer dependency conflicts
-     - Verify compatibility with current runtime version
+**Quality checks:**
+- "Run linter and fix errors"
+- "Run build - must succeed"
+- "Run tests - all must pass"
 
-   **c) Output findings:**
+**Final review:**
+- "Call project-memory review"
+- "Fix issues from review"
+- "Final verification - all acceptance criteria met"
+
+**Example output (for 6 tasks):**
+\`\`\`
+📋 Implementation Plan Created:
+
+1. Study code patterns for TASK-001 (pending)
+2. Implement TASK-001: Add user model (pending)
+3. Study code patterns for TASK-002 (pending)
+4. Implement TASK-002: Add authentication endpoints (pending)
+5. Mid-point self-reflect 1 - check progress (pending)
+6. Study code patterns for TASK-003 (pending)
+7. Implement TASK-003: Add authorization middleware (pending)
+8. Study code patterns for TASK-004 (pending)
+9. Implement TASK-004: Add password hashing (pending)
+10. Mid-point self-reflect 2 - check progress (pending)
+11. Study code patterns for TASK-005 (pending)
+12. Implement TASK-005: Add session management (pending)
+13. Study code patterns for TASK-006 (pending)
+14. Implement TASK-006: Add audit logging (pending)
+15. Run linter and fix errors (pending)
+16. Run build - must succeed (pending)
+17. Run tests - all must pass (pending)
+18. Call project-memory review (pending)
+19. Fix issues from review (pending)
+20. Final verification (pending)
+\`\`\`
+
+Note: Insert self-reflect checkpoints every 2-3 tasks for complex implementations.
+\`\`\`
+
+**CHECKPOINT: Get user approval to proceed to Stage 2.**
+
+---
+
+## STAGE 2: IMPLEMENTATION (Execute Todos)
+
+**Follow the todo list you created. Execute step by step.**
+
+### For each "Study code patterns" todo:
+
+1. Mark todo as \`in_progress\`
+2. Find 2-3 similar files in codebase (use Glob/Grep)
+3. Read them completely
+4. Document patterns:
    \`\`\`
-   📦 Dependencies Analysis:
-
-   Proposed: [package-name@version]
-   Latest Version: [version from registry]
-   Purpose: [why needed for this feature]
-
-   Compatibility Check:
-   ✅ Compatible with Node [current-version]
-   ✅ Compatible with [existing-framework@version]
-   ⚠️ Requires peer dependency: [package@version]
-   ❌ Conflicts with [existing-package] - requires migration
-
-   Recommendation: [proceed / needs resolution / consider alternative]
+   🔍 Code Patterns from [file1], [file2]:
+   - Naming: [camelCase/PascalCase/UPPER_CASE]
+   - Structure: [exports/imports/error handling]
+   - Formatting: [indentation/quotes/semicolons]
+   - Patterns: [async-await/functional/class-based/etc]
    \`\`\`
+5. Mark todo as \`completed\`
 
-   **d) If conflicts found:**
-   - Ask via AskUserQuestion: "Dependency conflict detected. How should we proceed?"
-     - Options: "Use alternative package" / "Plan migration strategy" / "Reconsider implementation approach"
-
-3. **If no new dependencies needed:**
-   - Output: "✅ Feature can be implemented with existing tech stack"
-
-**CHECKPOINT:** Resolve all dependency issues before proceeding to codebase audit.
+**CRITICAL: Output patterns BEFORE writing any code.**
 
 ---
 
-## Step 4: Audit Codebase for Reusable Code
+### For each "Implement [TASK-ID]" todo:
 
-**CRITICAL: Find existing functions/methods that can be reused or adapted**
+1. Mark todo as \`in_progress\`
+2. Re-read task acceptance criteria + relevant spec section
+3. Output implementation approach
 
-1. **Read project memory:**
-   - .project-memory/architecture.md (system structure)
-   - .project-memory/conventions.md (coding patterns)
+**As you write code - Mental checklist:**
+- ✓ Does implementation follow spec?
+- ✓ Is code DRY (no duplication)?
+- ✓ Am I introducing new patterns? (should be NO)
+- ✓ Am I modifying business logic (calculations/validations/rules)? → Ask first if YES
+- ✓ Am I modifying UI/UX (copy/styles/flows/accessibility)? → Ask first if YES
 
-2. **Scan codebase for reusable patterns:**
+4. Write code:
+   - Match patterns from study step
+   - Follow conventions.md strictly
+   - Handle edge cases from spec
+   - Apply security rules from base.md
 
-   Based on spec requirements, search for:
-   - Similar features already implemented
-   - Common functions (validation, error handling, API calls, database queries)
-   - Utility libraries (auth, logging, formatting)
-   - Middleware or decorators matching requirements
-   - Models/schemas that could be extended
+5. **MANDATORY checkpoint - Verify acceptance criteria:**
+   \`\`\`
+   ✅ [TASK-ID] Verification:
+   ✅ Criterion 1: [implemented] - Location: [file:line]
+   ✅ Criterion 2: [implemented] - Location: [file:line]
+   ✅ Follows spec requirements
+   ✅ Code is DRY
+   ✅ No new patterns introduced
+   ✅ No forbidden actions violated
+   \`\`\`
+   **If ANY is ✗ → fix before marking complete**
 
-   **For each requirement in spec:**
-   - Search codebase: \`grep -r "keyword" src/ --include="*.ts" --include="*.tsx"\`
-   - Read relevant files to understand existing implementation
-   - Note: function name, file path, signature, what it does
-
-3. **OUTPUT REQUIRED:**
-\`\`\`
-🔍 Codebase Reuse Analysis:
-
-Requirement: [from spec]
-  Existing code found: [yes/no]
-  - Function: [name] at [file:line]
-  - What it does: [description]
-  - Can reuse as-is: [yes/no]
-  - Needs modification: [yes/no + what changes]
-  - Recommendation: [reuse / adapt / rebuild]
-
-[Repeat for each major requirement]
-
-Summary:
-- Reusable as-is: [count] functions
-- Requires adaptation: [count] functions
-- New code needed: [count] functions
-\`\`\`
-
-**CHECKPOINT:** Reuse analysis complete
+6. Mark todo as \`completed\`
 
 ---
 
-## Step 5: Propose Code Reuse & Modifications
+### If you have "Mid-point self-reflect" todo:
 
-**Ask user confirmation for any reuse or modifications**
+- STOP implementation
+- Mark todo as \`in_progress\`
+- Call: \`mcp__project-memory__self-reflect\`
+- This is a lightweight check to catch issues early
+- Address any critical issues found before continuing
+- Mark todo as \`completed\`
+- Continue with remaining implementation todos
 
-For each function that needs modification, ask via AskUserQuestion:
-
-"Reuse Analysis for Requirement: [requirement]
-
-**Option 1: Reuse existing function as-is**
-- Function: [name]
-- File: [path:line]
-- Pro: No changes needed, maintains consistency
-- Con: [any limitations]
-
-**Option 2: Adapt existing function**
-- Current: [brief description]
-- Proposed changes: [specific modifications]
-- Pro: Reuses core logic, reduces duplication
-- Con: Requires testing modified function
-
-**Option 3: Write new function**
-- Pro: No dependencies on existing code
-- Con: Duplicates logic, harder to maintain
-
-**Choose option for this requirement:**"
-
-**Wait for user decision before proceeding**
-
-**OUTPUT REQUIRED:**
-\`\`\`
-✅ Reuse Confirmation:
-
-[Requirement 1]: [Option X - description]
-[Requirement 2]: [Option X - description]
-
-Modifications to existing code:
-- [Function name] in [file]: [changes to make]
-- User confirmed: ✅
-
-New functions to write:
-- [Function 1]
-- [Function 2]
-\`\`\`
+**Continue executing todos until all implementation todos are complete.**
 
 ---
 
-## Step 6: Verify Task Acceptance Criteria Aligns with Spec
+## STAGE 3: REVIEW & FIX (Verify Quality)
 
-**Before implementing each task, confirm acceptance criteria matches spec**
+### Execute Quality Check Todos:
 
-For each task in TASK list:
+**"Run linter and fix errors":**
+- Mark as \`in_progress\`
+- Run: \`npm run lint\` (from useful-commands.md)
+- Fix ALL errors/warnings
+- Output: "✅ Linter: passed"
+- Mark as \`completed\`
 
-1. **Read task acceptance criteria** from tasks-active.json
-2. **Read spec section** referenced in task's specReference
-3. **Compare:**
-   - Do acceptance criteria fully cover spec requirements? [yes/no]
-   - Any missing acceptance criteria from spec? [list]
-   - Any acceptance criteria beyond spec scope? [list]
-4. **Ask user if misalignment found:**
-   "Task [ID] acceptance criteria may not fully align with spec:
+**"Run build - must succeed":**
+- Mark as \`in_progress\`
+- Run: \`npm run build\`
+- Must succeed with no errors
+- Output: "✅ Build: success"
+- Mark as \`completed\`
 
-   Missing from criteria:
-   - [spec requirement not in acceptance criteria]
-
-   Should we:
-   1. Update task acceptance criteria to match spec
-   2. Update spec to match acceptance criteria
-   3. Keep both and implement both
-
-   Choose before proceeding with [task-id]"
-
-**OUTPUT REQUIRED:**
-\`\`\`
-✅ Task-Spec Alignment:
-
-TASK-001:
-  - Spec reference: [file]
-  - Acceptance criteria matches spec: ✅
-  - Additional requirements found: [none/list]
-
-[Repeat for each task]
-
-Status: ✅ Ready to implement
-\`\`\`
-
-**CHECKPOINT:** All tasks aligned with spec
+**"Run tests - all must pass":**
+- Mark as \`in_progress\`
+- Run: \`npm test\`
+- All tests must pass
+- Output: "✅ Tests: [X/X passed]"
+- Mark as \`completed\`
 
 ---
 
-## Step 7: Implement Feature
+### Execute Review Todos:
 
-**NOW implement, with spec alignment checks per task**
+**"Call project-memory review":**
+- Mark as \`in_progress\`
+- Run: \`mcp__project-memory__review\`
+- Output feedback:
+  \`\`\`
+  📊 Review Feedback:
+  Critical: [list]
+  Important: [list]
+  Minor: [list]
+  Suggestions: [list]
+  \`\`\`
+- Mark as \`completed\`
 
-1. **For each task in order:**
+**"Fix issues from review":**
+- Mark as \`in_progress\`
+- Address critical and important issues
+- Re-run: linter, build, tests after fixes
+- If significant changes → call \`mcp__project-memory__review\` again and iterate
+- Output: "✅ Fixed: [list of issues fixed]"
+- Mark as \`completed\`
 
-   a. **Pre-implementation spec check:**
-      - Re-read spec section for this task
-      - Re-read task acceptance criteria
-      - Confirm understanding is correct
+---
 
-   b. **Implement:**
-      - Write code following conventions.md
-      - Use reusable code from Step 4
-      - Apply modifications confirmed in Step 4
-      - Handle edge cases from spec
-      - Include security measures from spec
-      - Add error handling per spec
+### Execute Final Verification:
 
-   c. **Verify against acceptance criteria:**
-      - Code implements all acceptance criteria: [yes/no]
-      - Code aligns with spec: [yes/no]
-      - Added logging/monitoring as needed: [yes/no]
-      - Tested edge cases: [yes/no]
+**"Final verification":**
+- Mark as \`in_progress\`
+- Verify ALL tasks one more time:
+  \`\`\`
+  ✅ Final Verification:
 
-   d. **Move to next task**
+  [TASK-ID]: [title]
+  ✅ All acceptance criteria met - [file:line]
 
-2. **Test:**
-   - Build: \`npm run build\`
-   - Tests: \`npm test\`
-   - Type checks pass: ✅
-   - All tests pass: ✅
+  [TASK-ID]: [title]
+  ✅ All acceptance criteria met - [file:line]
 
-3. **OUTPUT:**
+  Code Quality:
+  ✅ Linter passed
+  ✅ Build succeeded
+  ✅ All tests passed
+  ✅ Review feedback addressed
+  ✅ No forbidden actions violated
+  \`\`\`
+- Mark as \`completed\`
+
+**Final output:**
 \`\`\`
-✅ Feature Implementation Complete:
+✅ Implementation Complete - Ready for Commit
 
-Tasks implemented:
-- TASK-001: [description] ✅
-- TASK-002: [description] ✅
+Tasks completed:
+- [TASK-ID]: [title]
+- [TASK-ID]: [title]
 
-Code reuse applied:
-- [existing function] reused in [new code] ✅
-- [existing function] adapted: [changes] ✅
+Files modified/created:
+- [file1.ts] - [description]
+- [file2.ts] - [description]
 
-Build & tests:
-- Build: ✅ Success
-- Tests: ✅ All passed
-- Type safety: ✅ No errors
+Quality gates: ✅ All passed
 
-Acceptance criteria:
-- All tasks meet acceptance criteria: ✅
-- All code aligns with spec: ✅
+Next steps:
+1. Review git diff manually (optional)
+2. Commit changes
+3. Run \`project-memory sync\` after commit
 \`\`\`
 
 ---
 
-## Rules
+## Essential Rules - Cannot Skip
 
-- **Always get spec & task reference first** - Never guess or assume
-- **Validate spec exists and is clear** - If ambiguous, ask user for clarification
-- **Validate task acceptance criteria** - Must be clear and reference spec
-- **Audit codebase thoroughly** - Find ALL reusable code before writing new code
-- **Ask user for confirmation** - Any modifications to existing code need approval
-- **Check alignment before implementing each task** - Compare acceptance criteria to spec
-- **Re-check spec before implementing** - Keep spec top-of-mind throughout implementation
-- **Test thoroughly** - Build + tests + type checks must all pass
-- **Document decisions** - Explain why code was reused, adapted, or newly written
+**Stage 1 (Planning):**
+- ✓ Load project context - understand ALL forbidden actions
+- ✓ Validate spec and tasks
+- ✓ Create detailed todo list with TodoWrite
 
----
+**Stage 2 (Implementation):**
+- ✓ Study code patterns BEFORE implementing each task (find 2-3 similar files, document patterns)
+- ✓ Check protected areas before modifying:
+  - Business logic (calculations/validations/rules) → ask first
+  - UI/UX (copy/styles/flows/accessibility) → ask first
+- ✓ Verify acceptance criteria BEFORE marking task complete
+- ✓ Call mid-point review if 4+ tasks or high complexity
 
-## Checklist Before Starting Code
+**Stage 3 (Review & Fix):**
+- ✓ Run linter, build, tests - all must pass
+- ✓ Call project-memory review
+- ✓ Fix issues found in review
+- ✓ Final verification of all acceptance criteria
 
-- ✅ User provided spec file path
-- ✅ User provided task reference(s)
-- ✅ Spec file exists and is clear
-- ✅ All tasks have acceptance criteria
-- ✅ All tasks have specReference field
-- ✅ Codebase audited for reusable code
-- ✅ User confirmed code reuse options
-- ✅ User confirmed required modifications
-- ✅ Task acceptance criteria aligned with spec
-- ✅ Ready to implement
+**Mental Checklist (Stage 2):**
+- Follows spec? DRY code? No new patterns? Protected areas checked?
 
 Done!
 `.trim();

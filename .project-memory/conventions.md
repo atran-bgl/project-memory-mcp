@@ -1,5 +1,56 @@
 # Coding Conventions
 
+## Forbidden Actions - NEVER Do These Without Permission
+
+❌ NO large refactors
+❌ NO dependency upgrades or additions
+❌ NO config file changes (package.json, tsconfig.json, .eslintrc, etc.)
+❌ NO auto-formatting entire files
+❌ NO removing existing features
+❌ NO changing public APIs
+❌ NO architectural changes
+❌ NO introducing new patterns
+❌ NO changing build scripts
+❌ NO changing business logic (calculations, validations, rules)
+❌ NO changing UI/UX (copy, visual design, UX flows - frontend projects)
+
+**Business Logic Protection:**
+Preserve existing calculations, validation rules, business constraints, data transformations.
+When unsure if something is business logic: STOP and ASK FIRST.
+
+**UI/UX Protection (Frontend Projects):**
+Don't change UI copy/text, colors, layouts, spacing, or user flows.
+Follow design system. Use existing components. Respect accessibility (ARIA, keyboard, contrast).
+When unsure if something affects UX: STOP and ASK FIRST.
+
+If needed: STOP, ask user, wait for approval.
+
+---
+
+## Code Style Enforcement - CRITICAL
+
+**ALWAYS match existing code style. NEVER introduce new patterns.**
+
+Before writing any code:
+1. **Read 2-3 similar files** in the codebase
+2. **Identify patterns:** naming, formatting, file structure, error handling
+3. **Match exactly:** Use SAME conventions, SAME patterns, SAME style
+4. **Run linters:** Fix all errors before committing
+
+**Rules:**
+- If codebase uses functional components, don't introduce classes
+- If codebase uses camelCase, don't use snake_case
+- If codebase uses named exports, don't use default exports
+- If codebase uses async/await, don't mix with .then()
+- Match indentation (tabs vs spaces), quotes (single vs double), semicolons
+
+**Verification:**
+- Run: `npm run lint` or `npx eslint [file]`
+- Fix all linting errors
+- Confirm: naming, patterns, formatting all match existing code
+
+---
+
 ## File Naming
 
 - **Source files:** camelCase.ts (e.g., prompt-loader.ts, init-prompt.ts)

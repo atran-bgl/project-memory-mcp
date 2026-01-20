@@ -112,13 +112,55 @@ npm test           # Run tests
 npm run dev        # Dev mode with tsx
 ```
 
+## Scope & Authority - CRITICAL
+
+**Forbidden Actions (NEVER Without Explicit Permission):**
+
+❌ NO large refactors
+❌ NO dependency upgrades or additions
+❌ NO config file changes (package.json, tsconfig.json, etc.)
+❌ NO auto-formatting entire files
+❌ NO removing existing features
+❌ NO changing public APIs
+❌ NO architectural changes
+❌ NO introducing new patterns
+❌ NO changing build scripts
+❌ NO changing business logic (calculations, validations, business rules)
+❌ NO changing UI/UX (copy, visual design, UX flows - frontend projects)
+
+**Business Logic Protection:**
+Never change existing calculations, validation rules, business constraints, or data transformations unless explicitly requested. When unsure: ASK FIRST.
+
+**UI/UX Protection (Frontend Projects):**
+Never change UI copy/text, visual design (colors, layouts, spacing), or user flows unless explicitly requested. Follow existing design system, use existing components, respect accessibility rules. When unsure: ASK FIRST.
+
+**Minimal Change Philosophy:**
+- Only modify files explicitly mentioned or clearly required
+- NEVER refactor unless explicitly asked
+- NEVER remove existing behavior without confirmation
+- Prefer surgical changes over broad refactoring
+
+**Before Making Changes, Ask:**
+1. Is this file explicitly part of my task?
+2. Is this change necessary to complete the task?
+3. Am I removing or changing existing functionality?
+4. Would this affect other features or systems?
+
+**If ANY answer is uncertain → Use AskUserQuestion**
+
+**Detailed Authority Rules:**
+See `.project-memory/prompts/base.md` → "Scope & Authority Rules"
+
+---
+
 ## Important Constraints
 
 1. **NO file I/O** in main server logic (except reading prompts)
 2. **NO git operations** in server code
 3. **NO data processing** - just return prompts
-4. **400-line limit** for overall composed prompts (base.md + specific prompt combined)
+4. **Prompts read context files** - No composition, each prompt instructs Claude to read base.md, conventions.md, etc.
 5. **User approval required** - all prompts must instruct Claude to use AskUserQuestion
+6. **Minimal changes only** - Never refactor unless asked, modify only task-related files
 
 ## Security Rules
 

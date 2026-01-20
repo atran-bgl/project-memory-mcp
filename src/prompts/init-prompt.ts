@@ -1,5 +1,3 @@
-import { TASK_JSON_SCHEMA } from '../schemas/task-schema.js'
-
 /**
  * Hardcoded init prompt - bootstrap tool for NEW projects
  * Runtime composed with fallback templates (parse-tasks, review, sync) so Claude can write them as starting files
@@ -19,43 +17,28 @@ Initialize: create folder structure, analyze project, generate customized prompt
 
 Check: \`test -d .project-memory && echo "EXISTS" || echo "NOT_FOUND"\`
 
-If EXISTS:
-- **STOP immediately** and inform user:
+If EXISTS - Ask via AskUserQuestion:
+"⚠️ .project-memory/ exists! Reinitializing overwrites customizations. Options:
+1. Use refresh-prompts instead (Recommended) - Preserves customizations
+2. Force reinitialize - Backup and overwrite everything"
 
-\`\`\`
-⚠️ .project-memory/ already exists!
-
-You likely want to REFRESH prompts, not reinitialize.
-
-Recommended action:
-→ Use "refresh project memory prompts" to update templates while preserving your customizations
-
-Reinitializing will:
-❌ Overwrite all customized prompts
-❌ Reset architecture.md, conventions.md, useful-commands.md
-❌ Potentially lose manual edits
-✅ Backup created, but better to avoid
-
-Only reinitialize if:
-- Project memory is corrupted
-- You want to completely start over
-- You're migrating to new structure
-\`\`\`
-
-- Ask via AskUserQuestion:
-  Question: "What would you like to do?"
-  Options:
-  1. "Use refresh-prompts instead (Recommended)" - Preserves customizations
-  2. "Force reinitialize - I understand this is destructive" - Overwrites everything
-
-- If Option 1 → STOP and tell user: "Please run 'refresh project memory prompts' instead"
-- If Option 2 → Create backup: \`cp -r .project-memory .project-memory.backup-$(date +%Y%m%d-%H%M%S)\`, then delete existing .project-memory and continue to Step 1
+If Option 1 → STOP, tell user: "Please run 'refresh project memory prompts' instead"
+If Option 2 → Backup: \`cp -r .project-memory .project-memory.backup-$(date +%Y%m%d-%H%M%S)\`, delete .project-memory, continue
 
 ---
 
-## Step 1: Create Folders
+## Step 1: Create Folders & Schema
 
-\`.project-memory/\`: tasks/, specs/, prompts/ (base.md, parse-tasks.md, review.md, sync.md, create-spec.md, implement-feature.md), architecture.md, conventions.md, useful-commands.md, commit-log.md
+Create: \`.project-memory/\` with subdirectories: tasks/, specs/, prompts/, schemas/
+
+**Files to create:**
+- prompts/: base.md, parse-tasks.md, review.md, sync.md, create-spec.md, implement-feature.md
+- architecture.md, conventions.md, useful-commands.md, commit-log.md
+- schemas/task-schema.json
+
+**To get the task schema:**
+1. Call the MCP tool: \`mcp__project-memory__get-task-schema\`
+2. Write the returned schema to \`.project-memory/schemas/task-schema.json\`
 
 ---
 
@@ -90,17 +73,26 @@ Ask via AskUserQuestion: "Found X discrepancies. Use current code as source of t
 
 **Fetch template files using the MCP tools, then write them to \`.project-memory/prompts/\`.**
 
-Write these 6 files:
+Write these 7 files:
 
-1. **base.md** - Create with generic content including:
+1. **base.md** - Create with GENERIC content (will be customized in Step 5 based on project type):
    - Core Responsibilities (file reading, git, task management)
-   - Project Memory file structure (list paths)
-   - Task Schema: ${TASK_JSON_SCHEMA}
+   - Forbidden Actions section (include ALL: large refactors, dependencies, config, business logic, UI/UX - will be filtered in Step 5)
+   - Business Logic Protection (include - will be filtered in Step 5 if not applicable)
+   - UI/UX Protection (include - will be filtered in Step 5 if not applicable)
+   - File Modification Authority
+   - Change Scope Rules
+   - Code Style Enforcement
+   - Approval Requirements
+   - Project Memory file structure (list paths including schemas/task-schema.json)
+   - Task Schema: "Use Read tool to read \`.project-memory/schemas/task-schema.json\` when creating/validating tasks. Do NOT call get-task-schema (init-only)."
    - Rules (approval, 200-line limit, JSON format, timestamps)
    - Documentation Rules: **CRITICAL: Do NOT create massive .md files.** Prefer code documentation (docstrings, comments) for implementation details. Use markdown files ONLY for essential architecture, setup, and usage guides. Keep each .md file ≤100 lines.
    - Task Completion Criteria: **CRITICAL: Always mark task as COMPLETED only when:** (1) Implementation is verified to work (code exists and functions as intended), (2) Tests pass (unit tests, integration tests, or manual verification completed), (3) No blocking issues remain
    - Security Rules: **NEVER** commit .env, hardcode credentials, log secrets, write API keys in tests. **ALWAYS** use environment variables, keep .env in .gitignore, define ports in .env (never hardcode), check port conflicts before deployment
    - Implementation Rules: **Break down complex features into multiple tasks.** If a feature requires >5 subtasks or >500 lines of code, split into multiple specs/tasks. Implement incrementally, test after each task. Never implement large features in one massive commit.
+
+   **NOTE:** This is a generic template. Step 5 will customize it based on detected project type.
 
 2. **parse-tasks.md** - Call the MCP tool \`mcp__project-memory__get-new-parse-tasks-prompt\` to fetch the template
 
@@ -112,45 +104,79 @@ Write these 6 files:
 
 6. **implement-feature.md** - Call the MCP tool \`mcp__project-memory__get-new-implement-feature-prompt\` to fetch the template
 
+7. **self-reflect.md** - Call the MCP tool \`mcp__project-memory__get-new-self-reflect-prompt\` to fetch the template
+
 **Note:** The templates fetched from the MCP tools are complete, working prompts. Write them as-is to the files (you'll customize them in Step 5).
 
 ---
 
-## Step 5: Customize Prompts
+## Step 5: Detect Project Type & Customize ALL Files
 
 **Use code-based analysis from Step 2, NOT documentation.**
 
-**CRITICAL: Detect project type from Step 2 and customize accordingly:**
-- Frontend-only (React, Vue, Angular, etc.) → Remove backend-specific sections
-- Backend-only (API server, microservice, etc.) → Remove frontend-specific sections
-- Full-stack (both frontend + backend) → Keep both sections
-- CLI/Library (no UI or API) → Remove both frontend and backend sections, add CLI-specific checks
+### Step 5.1: Determine Project Type (MANDATORY)
 
-**Customize ALL 6 prompt files:**
+Based on Step 2 analysis, classify project as ONE of:
 
-1. **base.md** - Already created with project tech stack
+1. **Frontend-only**: React, Vue, Angular, Next.js client-side, mobile app (React Native, Flutter)
+   - Has: UI components, styling, client-side state management
+   - No: API routes, database, server logic
 
-2. **parse-tasks.md** - Add task naming patterns from Step 2 (if any existing task structure detected)
+2. **Backend-only**: API server, microservice, CLI tool, library, backend worker
+   - Has: API routes, database, business logic, server code
+   - No: UI components, styling, client-side rendering
 
-3. **review.md** - CRITICAL customization:
-   - **Remove irrelevant "Critical Issues to Check" sections:**
-     - Frontend-only project → REMOVE "Common Backend Issues" section entirely
-     - Backend-only project → REMOVE "Common Frontend Issues" section entirely
-     - Full-stack project → KEEP both sections
-   - Add project-specific security checks based on tech stack
-   - Add critical files/directories to watch (from user answer below)
+3. **Full-stack**: Next.js with API routes, monorepo with frontend + backend
+   - Has: BOTH frontend AND backend components
 
-4. **sync.md** - Add deployment/infra file patterns to monitor
+4. **CLI/Library**: Command-line tool, npm package, Python library
+   - Has: CLI commands, library exports
+   - No: UI or API endpoints
 
-5. **create-spec.md** - Add required spec sections (performance benchmarks, DB migrations, etc.)
+**OUTPUT REQUIRED:**
+\`\`\`
+📋 Project Type Detected: [Frontend-only / Backend-only / Full-stack / CLI/Library]
 
-6. **implement-feature.md** - Add code reuse patterns, shared utility locations
+Reasoning:
+- [explain why based on Step 2 analysis]
+
+Customizations to apply:
+- [list which sections will be removed/kept]
+\`\`\`
+
+### Step 5.2: Customize Files Based on Project Type
+
+**base.md & conventions.md - Forbidden Actions:**
+- Frontend → KEEP UI/UX Protection, REMOVE backend items
+- Backend → REMOVE UI/UX Protection entirely
+- Full-stack → KEEP both
+- CLI/Library → REMOVE both
+
+**review.md - Critical Issues:**
+- Frontend → REMOVE "Common Backend Issues"
+- Backend → REMOVE "Common Frontend Issues"
+- Full-stack/CLI → Adjust accordingly
+
+**implement-feature.md - Step 7.3a checks:**
+- Frontend → KEEP UI/UX, REMOVE business logic
+- Backend → REMOVE UI/UX, KEEP business logic
+- Full-stack/CLI → Adjust accordingly
+
+**parse-tasks.md** - Add task naming patterns if found in Step 2
+**sync.md** - Add deployment/infra patterns to monitor
+
+### Step 5.3: Verify Customization
+
+Show user: "✅ Project Type: [type]. Customized base.md, conventions.md, review.md, implement-feature.md accordingly."
+**CHECKPOINT:** User confirms before proceeding.
+
+### Step 5.4: Add Tech Stack Details
 
 **For each prompt, add from Step 2 analysis:**
-- Language guidelines: [TypeScript/Python/Go rules from actual code/config]
-- Framework patterns: [React hooks/Django apps/etc. from actual imports]
 - Testing approach: [Jest/Pytest/etc. from test files]
 - Build/CI commands: [from package.json, Makefile, .github/workflows/]
+- Language guidelines: [TypeScript/Python/Go rules from actual code/config]
+- Framework patterns: [React hooks/Django apps/etc. from actual imports]
 
 **MANDATORY QUESTION - Ask user via AskUserQuestion:**
 "For code review customization, are there specific files/directories that need special attention? (e.g., API contracts, microservice boundaries, security modules, infrastructure code)"
@@ -205,48 +231,33 @@ Checkpoint: Ensure these files are current code implementation-based, NOT docume
 
 ## Step 8: Update or Create CLAUDE.md
 
-If CLAUDE.md doesn't exist, create it with this content at the top section
-If CLAUDE.md exists, add this reference section to the top of CLAUDE.md:
+Add to top of CLAUDE.md (create if doesn't exist):
 
 \`\`\`markdown
 ## Project Memory System - CRITICAL
 
-This project uses \`.project-memory/\` for AI-managed task and context tracking.
+Uses \`.project-memory/\` for AI-managed task/context tracking.
 
-**REQUIRED AT EVERY SESSION START - DO NOT SKIP:**
+**REQUIRED AT SESSION START - Read in order:**
+1. \`.project-memory/tasks/tasks-active.json\` - Active/pending tasks
+2. \`.project-memory/architecture.md\` - System design
+3. \`.project-memory/conventions.md\` - Code patterns
+4. \`.project-memory/useful-commands.md\` - Dev/build/test commands
+5. \`.project-memory/prompts/base.md\` - Workflow rules
 
-Before working on ANY task, you MUST read these files in order:
+**Tools:** \`project-memory parse-tasks\`, \`review\`, \`sync\`, \`create-spec\`
 
-1. \`.project-memory/tasks/tasks-active.json\` (or \`tasks-active_{domain}.json\` if multi-file)
-   - **Why:** Know what work is in progress and what's pending
-   - **Read:** ALL active tasks before starting any work
+---
 
-2. \`.project-memory/architecture.md\`
-   - **Why:** Understand system design and component interactions
-   - **Read:** Before making architectural decisions
+## Forbidden Actions
 
-3. \`.project-memory/conventions.md\`
-   - **Why:** Follow existing code patterns and standards
-   - **Read:** Before writing any code
+**Git:** ONLY \`git log\` and \`git diff\` allowed. All other git commands forbidden. Ask before any git operation.
 
-4. \`.project-memory/useful-commands.md\`
-   - **Why:** Use correct commands for dev/build/test/deploy
-   - **Read:** Before running any commands
+**Documentation:** NO massive .md files. Specs ≤400 lines. Prefer code comments over markdown.
 
-5. \`.project-memory/prompts/base.md\`
-   - **Why:** Full workflow instructions and rules
-   - **Read:** For task management, review, and sync guidelines
+**Dependencies:** NO upgrade/downgrade/add without approval. Ask first.
 
-**Failure to read these files will result in:**
-- Duplicate work (tasks already in progress)
-- Incorrect implementations (violating architecture/conventions)
-- Build/test failures (using wrong commands)
-
-**Use proactively:**
-- \`project-memory parse-tasks\` - Parse tasks from new specs
-- \`project-memory review\` - Before commits
-- \`project-memory sync\` - After commits
-- \`project-memory create-spec\` - Create specifications from requirements
+**Implementation:** NO code cleanup/refactor outside requirements. Minimal changes only. Ask if unsure.
 \`\`\`
 
 ---

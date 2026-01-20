@@ -14,7 +14,9 @@ import { SYNC_PROMPT } from './prompts/sync-prompt.js';
 import { CREATE_SPEC_PROMPT } from './prompts/create-spec-prompt.js';
 import { REFRESH_PROMPTS_PROMPT } from './prompts/refresh-prompts-prompt.js';
 import { IMPLEMENT_FEATURE_PROMPT } from './prompts/implement-feature-prompt.js';
-import { composePrompt, getProjectRoot, readPromptFile, validatePromptLength } from './utils/prompt-loader.js';
+import { SELF_REFLECT_PROMPT } from './prompts/self-reflect-prompt.js';
+import { TASK_JSON_SCHEMA } from './schemas/task-schema.js';
+import { getProjectRoot, readPromptFile, validatePromptLength } from './utils/prompt-loader.js';
 
 /**
  * Project Memory MCP Server
@@ -89,7 +91,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'create-spec',
         description:
-          'Create detailed specification from user requirements. Use this tool when: (1) user asks to create/write a spec, (2) user describes a feature they want to build, (3) user says "spec this" or "write a spec for". Clarifies ambiguity, validates against codebase, considers security/edge cases/tests, and writes spec to .project-memory/specs/.',
+          'Create detailed specifications from user requirements. Clarifies ambiguity, validates against codebase, considers security/edge cases/tests, and writes spec to .project-memory/specs/. Use when user describes a feature to build or asks to write a spec.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -98,7 +100,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'implement-feature',
         description:
-          'Use this tool when: (1) user asks to implement a feature from a spec, (2) user wants to implement tasks from specifications, (3) user says "implement from spec", "code from spec", "build from spec", or "implement this spec". Requires spec file and task reference. Audits codebase for code reuse, confirms any modifications with user, verifies task acceptance criteria aligns with spec, and re-checks spec before implementing each task.',
+          'Implement features, fix bugs, or code from specifications. Audits codebase for reusable code, validates against acceptance criteria, confirms modifications with user, and guides step-by-step implementation. Use when user wants to implement, code, build, or fix something.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -107,7 +109,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'refresh-prompts',
         description:
-          'Refresh project-specific prompts with latest template improvements while preserving customizations. Use this tool when: (1) user asks to "refresh prompts" or "update prompts", (2) user says "sync prompts" or "merge new templates", (3) after project-memory system updates to apply improvements. Backs up existing prompts, compares with new templates, identifies customizations, and merges them into updated templates. Requires user approval before modifications.',
+          'Refresh project-specific prompts with latest template improvements while preserving customizations. Backs up existing prompts, compares with new templates, and merges updates. Use when user asks to refresh or update prompts.',
         inputSchema: {
           type: 'object',
           properties: {},
@@ -153,6 +155,30 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           properties: {},
         },
       },
+      {
+        name: 'get-new-self-reflect-prompt',
+        description: 'Get the new self-reflect.md template. Called during init or refresh-prompts to fetch the latest self-reflect prompt template.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'get-task-schema',
+        description: 'Get the task JSON schema. Returns the structure for tasks in tasks-active.json and tasks-completed.json. Used during init to create schemas/task-schema.json or when Claude needs to understand task structure.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'self-reflect',
+        description: 'Mid-implementation self-reflection check. Lightweight quality check to catch issues early before they compound. Called during implement-feature Stage 2 when 4+ tasks or high complexity. Checks: mental checklist (spec, DRY, patterns), critical bugs, security issues, forbidden actions.',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
     ],
   };
 });
@@ -175,15 +201,24 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         break;
 
       case 'parse-tasks':
-        prompt = await composePrompt(projectRoot, 'parse-tasks.md', PARSE_TASKS_PROMPT);
+        // Parse tasks from specs, uses project-specific prompt if available
+        const parseTasksPrompt = await readPromptFile(projectRoot, 'parse-tasks.md');
+        prompt = parseTasksPrompt || PARSE_TASKS_PROMPT;
+        validatePromptLength(prompt, 'parse-tasks');
         break;
 
       case 'review':
-        prompt = await composePrompt(projectRoot, 'review.md', REVIEW_PROMPT);
+        // Review code changes, uses project-specific prompt if available
+        const reviewPrompt = await readPromptFile(projectRoot, 'review.md');
+        prompt = reviewPrompt || REVIEW_PROMPT;
+        validatePromptLength(prompt, 'review');
         break;
 
       case 'sync':
-        prompt = await composePrompt(projectRoot, 'sync.md', SYNC_PROMPT);
+        // Sync project memory with commits, uses project-specific prompt if available
+        const syncPrompt = await readPromptFile(projectRoot, 'sync.md');
+        prompt = syncPrompt || SYNC_PROMPT;
+        validatePromptLength(prompt, 'sync');
         break;
 
       case 'organize':
@@ -271,6 +306,35 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
             },
           ],
         };
+
+      case 'get-new-self-reflect-prompt':
+        // Return the new self-reflect.md template for init or refresh
+        validatePromptLength(SELF_REFLECT_PROMPT, 'self-reflect.md template');
+        return {
+          content: [
+            {
+              type: 'text',
+              text: SELF_REFLECT_PROMPT,
+            },
+          ],
+        };
+
+      case 'get-task-schema':
+        // Return the task JSON schema for Claude to write to schemas/task-schema.json
+        return {
+          content: [
+            {
+              type: 'text',
+              text: TASK_JSON_SCHEMA,
+            },
+          ],
+        };
+
+      case 'self-reflect':
+        // Return the self-reflect prompt for mid-implementation checks
+        prompt = SELF_REFLECT_PROMPT;
+        validatePromptLength(prompt, 'self-reflect');
+        break;
 
       default:
         throw new Error(`Unknown tool: ${name}`);

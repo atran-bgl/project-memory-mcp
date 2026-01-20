@@ -4,6 +4,37 @@ You are helping sync project memory with recent commits.
 
 **Note:** You should have already cached project memory files at session start (architecture.md, conventions.md, etc.). Reference this knowledge.
 
+## Step 0: Load Project Context & Rules - MANDATORY
+
+**Before syncing project memory, you MUST read and understand project rules.**
+
+Read these files NOW if you haven't this session:
+1. **`.project-memory/prompts/base.md`** - READ for Forbidden Actions and all rules
+2. **`.project-memory/conventions.md`** - READ for Forbidden Actions and Code Style
+3. `.project-memory/useful-commands.md` - Available commands
+4. `.project-memory/architecture.md` - System structure
+
+**Verification Required - Output this:**
+```
+✅ Project Context Loaded:
+
+FORBIDDEN ACTIONS (from base.md & conventions.md):
+[List ALL forbidden actions - typically 11+ items]
+
+Base Rules: [list 2-3 critical rules from base.md]
+Conventions: [list 2-3 key patterns from conventions.md]
+Commands: [list 2-3 key commands from useful-commands.md]
+Architecture: [list 2-3 key components from architecture.md]
+```
+
+**CRITICAL: If you cannot list the forbidden actions, you MUST read base.md and conventions.md now.**
+
+When reviewing commits during sync, check for any forbidden action violations.
+
+Do not proceed to Step 1 until you've verified and outputted the above.
+
+---
+
 ## Task Schema (Reference)
 
 ```json

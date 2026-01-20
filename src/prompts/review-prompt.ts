@@ -1,261 +1,313 @@
 /**
  * Fallback prompt for review tool
- * Used when project-specific review.md doesn't exist
- * Enforces actual code inspection over task-based review
+ * Unified review workflow with consistent criteria across all scopes
  */
 export const REVIEW_PROMPT = `# Code Review
 
-**MANDATORY: Analyze ACTUAL CODE, not just tasks or summaries.**
-
-Use extended thinking - think carefully and thoroughly. Always:
-- Read the actual source files
-- Analyze code quality, logic, potential bugs
-- Check security implications thoroughly
-- Verify alignment with architecture and conventions
-- Consider edge cases and impact on existing code
-
-## Choose Review Scope
-
-Ask user what to review:
-- "Review recent uncommitted changes" - git diff + code analysis
-- "Review entire codebase" - Full code scan against standards
-- "Review specific file or directory" - Focused code inspection
+**COMPREHENSIVE CODE REVIEW with consistent criteria regardless of scope.**
 
 ---
 
-## Critical Issues to Check (All Review Paths)
+## Step 1: Detect Review Scope
 
-**Common Backend Issues - MUST CHECK in ALL reviews:**
-- **Database**: N+1 queries, missing indexes, connection pool exhaustion, unclosed connections, transaction deadlocks, missing pagination on large queries
-- **Error Handling**: Unhandled exceptions, silent failures, generic error messages, missing try-catch blocks, improper async error handling, missing null checks
-- **Performance**: Blocking operations in async code, missing caching, inefficient algorithms, large unbatched requests, missing timeouts
-- **Resource Management**: Memory leaks, resource leaks, missing cleanup in finally/finally blocks, circular dependencies
-- **API Security**: Missing input validation, missing rate limiting, missing authentication/authorization checks, exposed error details, missing CORS validation
-- **Race Conditions**: Multiple concurrent requests to shared state, improper locking, stale data reads
+**Check your session context:**
 
-**Common Frontend Issues - MUST CHECK in ALL reviews:**
-- **Type Safety**: TypeScript violations (any types, missing null checks, unsafe casts), runtime type errors
-- **State Management**: Stale closures, infinite loops/recursion, circular state updates, missing state synchronization
-- **React-specific**: Missing dependency arrays in useEffect/useCallback, infinite rendering loops, missing keys in lists, improper prop drilling, memory leaks from subscriptions
-- **Async Issues**: Unhandled promise rejections, missing error boundaries, race conditions from concurrent requests, callback hell
-- **Edge Cases**: Off-by-one errors, boundary conditions, empty array handling, null/undefined coalescing
+Do you have knowledge of:
+- Recent implementation from implement-feature tool?
+- Spec file path being implemented?
+- Task IDs being worked on?
 
----
+**If YES (have context):**
+- Scope: **Recent uncommitted changes** (post-implementation)
+- Files: Run git diff to get changed files
 
-## For Recent Changes
+**If NO (no context):**
+Ask via AskUserQuestion: "What would you like to review?"
+Options:
+1. Recent uncommitted changes (git diff)
+2. Recent commits (git log + diff)
+3. Specific files/directories (provide path)
+4. Entire codebase (full health check)
 
-**CRITICAL: MUST read the actual modified files (not just diff summary)**
-
-1. **Ask for relevant specs and tasks** via AskUserQuestion:
-   "What specs or tasks are these changes related to?"
-   - Provide spec file path(s) and/or task ID(s)
-   - Leave blank if no specific task/spec
-
-2. **If user provided specs/tasks:**
-   - Read the spec file(s) - understand requirements and acceptance criteria
-   - Read the task(s) - note acceptance criteria and specReference
-   - **Keep spec requirements and acceptance criteria in mind for verification in step 5**
-
-3. Get list of changed files:
-   \`git diff --name-only\` and \`git diff --cached --name-only\`
-
-4. **CHECK FOR DEPENDENCY VULNERABILITIES:**
-
-   **If dependency files modified** (package.json, requirements.txt, Cargo.toml, go.mod, etc.):
-
-   a) Run \`git diff package.json\` (or equivalent) - extract changed packages
-
-   b) **Check vulnerabilities:**
-      - npm: Run \`npm audit\` + WebFetch \`https://registry.npmjs.org/[pkg]\`
-      - Python: WebFetch \`https://pypi.org/pypi/[pkg]/json\`
-      - Rust: WebFetch \`https://crates.io/api/v1/crates/[pkg]\`
-
-   c) **Output:**
-      \`\`\`
-      🔒 Dependency Security:
-      - [pkg@ver]: [VULNERABLE/OUTDATED/SAFE] - [CVE/details]
-        Severity: [CRITICAL/HIGH/MODERATE/LOW] - Fix: [version]
-
-      Summary: [X critical, Y high] - Action: [BLOCK/proceed]
-      \`\`\`
-
-   d) If CRITICAL/HIGH found → Flag as BLOCKING issue
-
-   **If no dependency changes:** "✅ No dependency changes"
-
-5. **READ THE ACTUAL CODE:**
-   - Read each modified file in its entirety
-   - Understand what changed and WHY
-   - Analyze the logic and implementation
-   - Compare against conventions.md for style adherence
-
-6. **Code Analysis - OUTPUT REQUIRED:**
-   \`\`\`
-   📝 Code Review:
-   Files: [list with line ranges if partial]
-
-   Implementation Quality:
-   - Logic correctness: [assessment]
-   - Potential bugs: [list any found]
-   - Security issues: [hardcoded secrets, .env, API keys, SQL injection, XSS, dependency vulnerabilities (see step 4), etc.]
-   - Code style: [adheres to conventions? yes/no + issues]
-
-   Architectural Impact:
-   - Aligns with architecture.md: [yes/no + explanation]
-   - Breaks any patterns/conventions: [list issues]
-   - Affects other components: [what impact]
-   \`\`\`
-
-7. **Verify Against Spec & Acceptance Criteria** (if user provided specs/tasks in step 2):
-   \`\`\`
-   📋 Spec & Acceptance Criteria Verification:
-
-   Spec: [filename]
-   Task: [task ID if applicable]
-
-   Requirements vs Implementation:
-   - Requirement 1: [implemented correctly / partially / missing / extra code not in spec]
-   - Requirement 2: [status]
-   - [... all spec requirements checked ...]
-
-   Acceptance Criteria Compliance:
-   - Criterion 1: [met / not met]
-   - Criterion 2: [met / not met]
-   - [... all acceptance criteria checked ...]
-
-   Inconsistencies Found:
-   - [Severity]: [specific inconsistency between code and spec/criteria]
-   - [Severity]: [next issue]
-   \`\`\`
-
-   **Flag any:**
-   - Missing features from spec
-   - Extra code not in spec requirements
-   - Failed acceptance criteria
-   - Code that contradicts spec design
-
-8. **Check Critical Issues** (see "Critical Issues to Check" section above)
-   - Apply all backend and frontend issue checks to modified files
-   - Note any issues found by category
-
-9. Cross-reference with active tasks (from project memory context)
+**Set scope based on answer, then continue.**
 
 ---
 
-## For Entire Codebase
+## Step 2: Load Project Context - MANDATORY
 
-**CRITICAL: MUST read actual source files systematically**
+**Read these files NOW:**
+1. \`.project-memory/prompts/base.md\` - Forbidden Actions, Business Logic/UI/UX Protection
+2. \`.project-memory/conventions.md\` - Code Style Enforcement
+3. \`.project-memory/useful-commands.md\` - Commands
+4. \`.project-memory/architecture.md\` - System structure
 
-1. **Use Explore Agent for Codebase Scanning** (Recommended for efficiency)
+**Verify:**
+\`\`\`
+✅ Context Loaded:
+Forbidden Actions: [list ALL - typically 11+]
+Conventions: [list 2-3 key patterns]
+Commands: [build/test/lint]
+Architecture: [key components]
+\`\`\`
 
-   Launch the Explore agent to systematically scan the codebase:
-   - Task type: Use "Explore" agent (subagent_type: 'Explore')
-   - Thoroughness: Use 'very thorough' for comprehensive analysis
-   - Search for:
-     * File structure and organization
-     * Key architecture patterns and modules
-     * Common issues (N+1 queries, error handling, type safety)
-     * Security patterns (hardcoded secrets, validation, auth)
-     * Testing coverage and patterns
-   - Ask Explore agent: "Provide codebase overview with file structure, architecture patterns, and identify potential issues across backend/frontend"
+---
 
-2. **Codebase Analysis - OUTPUT REQUIRED:**
+## Step 3: Gather Code for Review
+
+Based on scope from Step 1:
+
+**For Recent Uncommitted Changes:**
+- Run: \`git diff --name-only\` + \`git diff --cached --name-only\`
+- Get list of modified files
+- Read each modified file completely
+
+**For Recent Commits:**
+- Ask: "How many recent commits?" (default: last 5)
+- Run: \`git log -n [count] --name-only\`
+- Run: \`git diff HEAD~[count]..HEAD\`
+- Get changed files, read each completely
+
+**For Specific Area:**
+- Ask: "What file or directory path?"
+- If user provided spec/tasks → Read spec file + tasks
+- Use Glob to list all files in path
+- Read all files in area
+
+**For Entire Codebase:**
+- Use Explore agent (subagent_type: 'Explore', thoroughness: 'very thorough')
+- Query: "Analyze codebase structure, identify files by category (backend/frontend/config/tests), flag potential issues"
+- Get comprehensive file list from Explore output
+- Read key files identified by Explore
+
+---
+
+## Step 4: Get Context References (If Available)
+
+**Ask via AskUserQuestion:**
+"Are these changes related to specific specs or tasks?"
+- Provide spec file path(s) and/or task ID(s)
+- Or leave blank if none
+
+**If provided:**
+- Read spec file(s)
+- Read tasks from \`.project-memory/tasks/tasks-active.json\`
+- Note requirements and acceptance criteria for later verification
+
+---
+
+## Step 5: Security & Dependency Check
+
+**If dependency files modified** (package.json, requirements.txt, etc.):
+
+a) Run \`git diff [dependency-file]\` - extract changed packages
+
+b) Check vulnerabilities:
+   - npm: \`npm audit\` + WebFetch \`https://registry.npmjs.org/[pkg]\`
+   - Python: WebFetch \`https://pypi.org/pypi/[pkg]/json\`
+   - Rust: WebFetch \`https://crates.io/api/v1/crates/[pkg]\`
+
+c) Output:
    \`\`\`
-   🏗️ Code Health:
-
-   Structure & Architecture:
-   - Follows documented architecture.md: [yes/no]
-   - Inconsistencies found: [list violations]
-
-   Code Quality:
-   - Convention adherence: [% estimated + violations]
-   - Test coverage: [assess]
-   - Documentation: [present/missing]
-
-   Security & Performance:
-   - Security vulnerabilities: [hardcoded secrets, .env, input validation, auth checks, etc.]
-   - Backend issues: [N+1 queries, connection leaks, error handling, timeouts, etc.]
-   - Frontend issues: [type safety, infinite loops, stale closures, missing dependencies, etc.]
-   - Technical debt: [areas needing attention]
+   🔒 Dependency Security:
+   - [pkg@ver]: [VULNERABLE/SAFE] - Severity: [CRITICAL/HIGH/LOW] - Fix: [version]
+   Summary: [X critical, Y high] - [BLOCK/proceed]
    \`\`\`
 
-3. **Apply Critical Issues checklist** (see "Critical Issues to Check" section above)
-   - Check all backend issues across entire codebase
-   - Check all frontend issues across entire codebase
-   - Categorize findings by severity
+d) Flag CRITICAL/HIGH as blocking
 
-4. List critical issues found
+**If no dependency changes:** "✅ No dependency changes"
 
 ---
 
-## For Specific Area
+## Step 6: Core Review Checks (ALL SCOPES)
 
-**CRITICAL: READ all files in the specified path**
+### 6.1: Mental Checklist
 
-1. **Ask for relevant specs and tasks** via AskUserQuestion:
-   "What specs or tasks are these changes related to?"
-   - Provide spec file path(s) and/or task ID(s)
-   - Leave blank if no specific task/spec
+\`\`\`
+🧠 Mental Checklist:
 
-2. **If user provided specs/tasks:**
-   - Read the spec file(s) - understand requirements and acceptance criteria
-   - Read the task(s) - note acceptance criteria and specReference
-   - **Keep spec requirements and acceptance criteria in mind for verification in step 6**
+✓ Follows spec/requirements? [yes/no] - [deviations]
+✓ Code is DRY (no duplication)? [yes/no] - [duplications found]
+✓ No new patterns introduced? [yes/no] - [new patterns]
+✓ Matches existing code style? [yes/no] - [style violations]
+✓ Protected areas:
+  - Business logic modified? [yes/no] - [list]
+  - UI/UX modified? [yes/no] - [list]
+\`\`\`
 
-3. Get user-selected file/directory path
+### 6.2: Forbidden Actions Check (HIGH PRIORITY)
 
-4. **Use Explore Agent for Targeted Scanning** (Optional, for efficiency)
+Scan for violations:
+- ❌ Large refactors, dependency changes, config changes
+- ❌ Auto-formatting entire files, removed features
+- ❌ API changes, architectural changes, new patterns
+- ❌ Build script changes, business logic changes, UI/UX changes
 
-   For larger areas, consider using Explore agent:
-   - Task type: Use "Explore" agent (subagent_type: 'Explore')
-   - Thoroughness: Use 'medium' for focused exploration
-   - Query: "Explore [user-provided path] and identify: file structure, key functions/components, potential issues"
+**Flag violations as Critical**
 
-5. Read all source files in that area
-6. Analyze: logic, quality, security, architectural fit
-7. Compare against conventions and architecture
-8. **Verify Against Spec & Acceptance Criteria** (if user provided specs/tasks in step 2):
-   - Check if implementation matches all spec requirements
-   - Verify all acceptance criteria are met
-   - Flag missing features, extra code, failed criteria, or contradictions
-   - Provide detailed inconsistency report (see format in "For Recent Changes" section)
+### 6.3: Focus Areas by Project Type
 
-9. **Apply Critical Issues checklist** (see "Critical Issues to Check" section above)
-   - Check all backend issues relevant to area
-   - Check all frontend issues relevant to area
-10. Identify area-specific concerns:
-   - Backend endpoints: error handling, validation, timeouts, proper HTTP codes
-   - Database code: connection management, query efficiency, pagination
-   - Frontend components: renders, component composition
-   - Async code: cancellation, cleanup
-   - Configuration: hardcoded values, secrets
+**Backend Issues:**
+- Database: N+1 queries, missing indexes, unclosed connections, missing pagination
+- Error Handling: Unhandled exceptions, missing try-catch, missing null checks
+- Performance: Blocking operations, missing caching, missing timeouts
+- API Security: Missing validation, missing auth checks, exposed errors
+- Resource Management: Memory leaks, circular dependencies
+
+**Frontend Issues:**
+- Type Safety: any types, missing null checks, unsafe casts
+- State Management: Stale closures, infinite loops, circular updates
+- React: Missing dependency arrays, infinite renders, missing keys
+- Async: Unhandled promise rejections, race conditions
+- Edge Cases: Off-by-one errors, boundary conditions
+
+### 6.4: Security Scan
+
+- Hardcoded secrets, API keys, credentials
+- Missing input validation
+- SQL injection, XSS vulnerabilities
+- Exposed error details (stack traces)
+- .env file committed
+
+### 6.5: Code Patterns & Style
+
+- Compare against conventions.md
+- Check naming conventions
+- Check code structure (exports, imports, error handling)
+- Check formatting (indentation, quotes, semicolons)
 
 ---
 
-## Code Structure & Testability Score
+## Step 7: Verify Against Spec (If Provided in Step 4)
 
-Assess code quality on these dimensions (score /10):
-- **Code clarity**: Intent, naming, readability
-- **Documentation**: JSDoc, examples, comments
-- **Type safety**: TS usage, any types, null checks
-- **Modularity**: Separation, DRY, organization
-- **Testability**: Unit testability, mock-ability
-- **Error handling**: Exception handling, error clarity
-- **Extensibility**: Cost of adding new features
-- **Code duplication**: Repeated patterns
+\`\`\`
+📋 Spec & Acceptance Criteria:
 
-For each: provide score, notes, and improvement recommendations if <8/10.
+Spec: [file]
+Tasks: [IDs]
+
+Requirements:
+- Req 1: [✅ met / ⚠️ partial / ❌ missing / ⚡ extra]
+- Req 2: [status]
+
+Acceptance Criteria:
+✅ [TASK-ID] Criterion 1: [met/not met] - [file:line]
+✅ [TASK-ID] Criterion 2: [met/not met] - [file:line]
+
+Inconsistencies:
+- [Critical/Important/Minor]: [issue]
+\`\`\`
 
 ---
 
-## Next Steps
+## Step 8: Run Quality Checks
 
-Propose updates via AskUserQuestion:
-- Code issues found (severity: critical/high/medium/low + fix recommendations)
-- Code structure assessment (with scores and improvement recommendations)
-- Task status updates (if code implements active tasks)
-- Architecture updates needed
-- Security violations requiring immediate action
+**Run build:**
+- Command: From useful-commands.md (e.g., \`npm run build\`)
+- Must succeed with no errors
+- Output: "✅ Build: success" or "❌ Build failed: [errors]"
 
-Get user approval before writing files.
+**Run tests:**
+- Command: From useful-commands.md (e.g., \`npm test\`)
+- All tests must pass
+- Output: "✅ Tests: [X/X passed]" or "❌ Tests failed: [details]"
+
+**Run linter (optional):**
+- Command: \`npm run lint\`
+- Check for warnings/errors
+- Output: "✅ Linter: clean" or "⚠️ Linter: [X warnings]"
+
+---
+
+## Step 9: Evaluate Code Quality
+
+**Assessment Criteria:**
+
+1. **Maintainability** [score /10]:
+   - Code clarity, modularity, DRY principle
+   - Notes: [issues found]
+
+2. **Alignment to Requirements** [score /10]:
+   - Matches spec, meets acceptance criteria
+   - Notes: [deviations]
+
+3. **Security** [score /10]:
+   - No vulnerabilities, proper validation
+   - Notes: [security issues]
+
+4. **Code Quality** [score /10]:
+   - Follows conventions, proper error handling
+   - Notes: [quality issues]
+
+5. **Architecture Alignment** [score /10]:
+   - Fits architecture.md, no forbidden actions
+   - Notes: [violations]
+
+**Overall Assessment: [X/50]**
+
+---
+
+## Step 10: Output Review Feedback
+
+\`\`\`
+📊 Review Feedback:
+
+Scope: [Recent changes / Recent commits / Specific area / Entire codebase]
+Files Reviewed: [count] - [list key files]
+
+Critical Issues (Must Fix - Blocks commit):
+- [file:line] - [issue] - Fix: [how to fix]
+
+Important Issues (Should Fix - Quality/correctness):
+- [file:line] - [issue] - Fix: [how to fix]
+
+Minor Issues (Nice to Fix - Style/optimization):
+- [file:line] - [issue] - Fix: [how to fix]
+
+Suggestions (Optional improvements):
+- [suggestion with rationale]
+
+Quality Assessment:
+✅ Maintainability: [score/10]
+✅ Requirements: [score/10]
+✅ Security: [score/10]
+✅ Code Quality: [score/10]
+✅ Architecture: [score/10]
+Overall: [X/50]
+
+Build & Tests:
+✅ Build: [success/failed]
+✅ Tests: [X/Y passed]
+✅ Linter: [clean/warnings]
+
+Summary:
+✅ Spec alignment: [if applicable]
+✅ Forbidden actions: [no violations/violations found]
+✅ Dependencies: [safe/vulnerabilities found]
+
+Recommendation: [✅ READY FOR COMMIT / ❌ FIX ISSUES FIRST]
+\`\`\`
+
+---
+
+## Rules
+
+**Consistent Criteria:**
+- All scopes use same review checks (mental checklist, forbidden actions, focus areas, security)
+- All scopes get same quality assessment (5 criteria)
+- All scopes run build/tests
+
+**Scope Differences (HOW to gather code):**
+- Recent changes: git diff
+- Recent commits: git log + diff
+- Specific area: Glob + read files (+ optional Explore for large areas)
+- Entire codebase: Explore agent + read key files
+
+**Output Format:**
+- Always: Critical/Important/Minor/Suggestions
+- Always: Quality scores (5 criteria)
+- Always: Build/test results
+- Always: Commit recommendation
+
+Done!
 `.trim();

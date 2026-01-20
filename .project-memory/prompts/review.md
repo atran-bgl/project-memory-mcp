@@ -2,6 +2,43 @@
 
 **MANDATORY: Analyze ACTUAL CODE, not just tasks or summaries.**
 
+## Step 0: Load Project Context & Rules - MANDATORY
+
+**Before reviewing any code, you MUST read and understand project rules.**
+
+Read these files NOW if you haven't this session:
+1. **`.project-memory/prompts/base.md`** - READ COMPLETELY for Forbidden Actions, Scope & Authority, Business Logic & UI/UX Protection
+2. **`.project-memory/conventions.md`** - READ COMPLETELY for Forbidden Actions and Code Style
+3. `.project-memory/useful-commands.md` - Available commands
+4. `.project-memory/architecture.md` - System structure
+
+**Verification Required - Output this:**
+```
+✅ Project Context Loaded:
+
+FORBIDDEN ACTIONS (from base.md & conventions.md):
+[List ALL forbidden actions - typically 11+ items like:]
+- NO large refactors
+- NO dependency changes
+- NO config changes
+- NO changing business logic
+- NO changing UI/UX
+- [... list all you found ...]
+
+Base Rules: [list 2-3 critical rules from base.md]
+Conventions: [list 2-3 key patterns from conventions.md]
+Commands: [list 2-3 key commands from useful-commands.md]
+Architecture: [list 2-3 key components from architecture.md]
+```
+
+**CRITICAL: If you cannot list ALL the forbidden actions, you MUST read base.md and conventions.md now.**
+
+During code review, you will check for violations of these forbidden actions with HIGH priority.
+
+Do not proceed to choosing review scope until you've verified and outputted the above.
+
+---
+
 ## Choose Review Scope
 
 Ask user what to review:
@@ -39,7 +76,22 @@ Ask user what to review:
    - Affects other components: [what impact]
    ```
 
-4. **Critical Issues to Check:**
+4. **Check for Forbidden Actions Violations (HIGH PRIORITY):**
+   - Large refactors (code restructured unnecessarily)
+   - Dependency changes (added/upgraded without approval)
+   - Config changes (package.json, tsconfig.json, .eslintrc)
+   - Auto-formatting entire files (not just new code)
+   - Removed features (deleted working code)
+   - API changes (modified signatures, interfaces, exports)
+   - Architectural changes (folder structure, organization)
+   - New patterns introduced (different from existing code)
+   - Build script changes
+   - Business logic changes (calculations, validations, rules)
+   - UI/UX changes (copy, design, flows - frontend)
+
+   **If ANY violations → Flag as HIGH severity issue**
+
+5. **Critical Issues to Check:**
    - **Prompt Size:** Composed prompt > 400 lines? (base.md + specific prompt combined)
    - **File I/O:** Any file operations in server logic (except reading prompts)?
    - **Git Operations:** Any git commands in server code?
@@ -48,7 +100,7 @@ Ask user what to review:
    - **Error Handling:** Unhandled exceptions, silent failures
    - **Testing:** Proper test structure, edge cases covered
 
-5. Cross-reference with active tasks
+6. Cross-reference with active tasks
 
 ---
 
@@ -77,7 +129,11 @@ Ask user what to review:
    - Technical debt: [areas needing attention]
    ```
 
-3. **Systematic check for common issues:**
+3. **Check for Forbidden Actions Violations (HIGH PRIORITY):**
+   - Scan entire codebase for forbidden action violations (same list as step 4 in "For Recent Changes")
+   - Output violations by file with severity rating
+
+4. **Systematic check for common issues:**
    - Prompt size validation (400-line limit enforced?)
    - File I/O constraints (only reading prompts?)
    - Type safety (TypeScript strict mode)
@@ -85,7 +141,7 @@ Ask user what to review:
    - Testing coverage (prompt loading, composition, validation)
    - Security (no secrets, env variables used)
 
-4. List critical issues found
+5. List critical issues found
 
 ---
 
