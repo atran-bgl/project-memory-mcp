@@ -203,11 +203,10 @@ This ensures you understand the current system state before executing any tasks.
 - `mcp__project-memory__refresh-prompts` - Update prompt templates with latest improvements
 - `mcp__project-memory__organize` - Migrate existing CLAUDE.md to project memory
 
-**Trigger refresh-prompts when:**
-- User asks: "refresh prompts", "update prompts", "sync prompts"
-- User says: "merge new templates", "update prompt templates"
-- After project-memory system receives major improvements
-- Workflow prompts (parse-tasks.md, review.md, sync.md) need to align with new standards
+**Trigger refresh-prompts when user asks:**
+- "refresh prompts", "update prompts", "sync prompts"
+- "merge new templates", "update prompt templates", "get latest prompts"
+- Or any similar refresh-related requests
 
 ## Documentation Rule
 

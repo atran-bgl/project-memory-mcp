@@ -99,7 +99,18 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
 
 ### Configure MCP in Claude Code CLI
 
-Add to your user config at `~/.claude.json`:
+Run this command to add the MCP server:
+
+```bash
+claude mcp add --scope user project-memory project-memory-mcp
+```
+
+This automatically configures the MCP server in your `~/.claude.json` and makes it available in all your projects.
+
+<details>
+<summary>Manual configuration (alternative)</summary>
+
+You can also manually add to your user config at `~/.claude.json`:
 
 ```json
 {
@@ -111,8 +122,7 @@ Add to your user config at `~/.claude.json`:
 	}
 }
 ```
-
-This will make the mcp available in all your project.
+</details>
 
 ### Restart Claude
 

@@ -8,7 +8,8 @@ export const CREATE_SPEC_PROMPT = `# Create Specification
 Create detailed, actionable spec from user requirements, validated against existing codebase.
 
 **CRITICAL: Specs must be clear for coding agents, secure, maintainable, with test cases.**
-**CRITICAL: Each spec file ≤200 lines (token limit). Use modular specs for complex features.**
+**CRITICAL: Each spec file ≤200 lines. If total content >400 lines, MUST use modular specs.**
+**CRITICAL: Modular specs MUST be in folder: \`.project-memory/specs/[feature-name]/\`**
 
 ---
 
@@ -55,29 +56,37 @@ Do not proceed to Step 1 until you've verified and outputted the above.
 
 ## Step 2: Determine Spec Structure
 
-**Ask user via AskUserQuestion:**
-"Is this a large/complex feature that should be split into multiple spec files?
+**Analyze requirements and recommend structure:**
 
-Options:
-1. Single spec (simple features, ≤200 lines total)
-2. Modular specs (complex features, multiple files ≤200 lines each)
+**Complexity Levels:**
+- **LOW:** Single domain, 1-2 components, no external integrations
+- **MEDIUM:** 2 domains, 3-5 components, 1-2 integrations
+- **HIGH:** 3+ domains, 6+ components, 3+ integrations, or affects core architecture
 
-Choose based on:
-- Multiple domains (backend + frontend + infra)
-- Large scope (authentication system, payment integration, admin dashboard)
-- Cross-cutting concerns (security, testing, performance)"
+**Spec Structure:**
+- **SINGLE SPEC:** LOW complexity, <200 lines
+- **MODULAR SPECS:** MEDIUM/HIGH complexity, >400 lines, or multiple domains
 
-**If modular (Option 2):**
-Plan spec structure:
-- \`[feature]-overview.md\` (≤100 lines) - Master spec with links
-- \`[feature]-backend.md\` (≤200 lines) - API, database, business logic
-- \`[feature]-frontend.md\` (≤200 lines) - UI components, user flows
-- \`[feature]-security.md\` (≤200 lines) - Auth, validation, OWASP
-- \`[feature]-tests.md\` (≤200 lines) - Test strategy, cases
-- \`[feature]-tasks.md\` (≤200 lines) - Implementation plan
+**Output your analysis:**
+\`\`\`
+Recommendation: [SINGLE | MODULAR]
+Reasoning: [1-2 sentences on why]
+Estimated lines: [rough estimate]
+Complexity: [LOW | MEDIUM | HIGH]
+\`\`\`
 
-**If single spec (Option 1):**
-Create one comprehensive spec ≤200 lines
+**If complexity is HIGH (large scope, multiple domains, complex integrations):**
+- Use EnterPlanMode tool to thoroughly explore codebase before creating spec
+- Plan mode will help design the specification approach and get user approval
+- STOP here and enter plan mode
+
+**If complexity is LOW/MEDIUM:**
+- Ask user via AskUserQuestion: "I recommend [SINGLE/MODULAR] spec because [reason]. Proceed?"
+- If MODULAR, plan structure:
+  - overview.md (≤100 lines)
+  - backend.md, frontend.md (≤200 lines each) [if needed]
+  - security.md (≤200 lines) [if security-critical]
+  - tests.md, tasks.md (≤200 lines each)
 
 ---
 
@@ -101,7 +110,9 @@ Create one comprehensive spec ≤200 lines
 3. Are there performance/security requirements? (SLA, compliance, data sensitivity)
 4. Who are the users? (internal devs, end users, admins)
 5. Any existing patterns/conventions I should follow?
-6. What's the expected scale/load?"
+6. What's the expected scale/load?
+7. Is there domain knowledge I need to research? (industry standards, protocols, regulations)
+   - If yes: Ask permission via AskUserQuestion: 'May I search the web to research [domain topic]?'"
 
 **CHECKPOINT:** Get user answers before proceeding
 
@@ -209,69 +220,39 @@ Create one comprehensive spec ≤200 lines
 
 ---
 
-### For MODULAR SPECS (multiple files ≤200 lines each):
+### For MODULAR SPECS (multiple files in \`.project-memory/specs/[feature-name]/\`):
 
-**Create these files:**
+**Create folder and files:**
 
-**1. [feature]-overview.md (≤100 lines):**
-- Purpose & user story
-- Scope (included/excluded)
-- Context (ecosystem fit)
-- Related specs (link to other spec files)
-- High-level architecture diagram (text)
+**1. overview.md (≤100 lines):**
+- Purpose, user story, scope, context
+- Related specs (links), high-level architecture
 - Success criteria
 
-**2. [feature]-backend.md (≤200 lines):**
-- API endpoints (routes, methods, auth)
-- Database schema (tables, fields, indexes)
-- Business logic (algorithms, validation rules)
-- Data flow (request → processing → response)
-- Integration with existing backend code
-- Error handling
-- Related: [Link to security.md, tests.md]
+**2. backend.md (≤200 lines):** [if backend work]
+- API endpoints, database schema, business logic
+- Data flow, integration, error handling
 
-**3. [feature]-frontend.md (≤200 lines):**
-- UI components (screens, forms, widgets)
-- User flows (step-by-step interactions)
-- State management (stores, contexts)
-- API integration (endpoints called)
-- UX considerations (loading, errors, feedback)
-- Integration with existing frontend code
-- Related: [Link to overview.md, tests.md]
+**3. frontend.md (≤200 lines):** [if frontend work]
+- UI components, user flows, state management
+- API integration, UX considerations
 
-**4. [feature]-security.md (≤200 lines):**
-- Authentication & authorization (who can access)
-- Input validation (sanitization, type checking)
-- Data protection (encryption, PII, secrets)
-- OWASP Top 10 review
-- Secure coding practices
-- Threat model
-- Security testing requirements
-- Related: [Link to backend.md, tests.md]
+**4. security.md (≤200 lines):** [if security-critical]
+- Auth/authorization, input validation, data protection
+- OWASP Top 10, threat model, secure practices
 
-**5. [feature]-tests.md (≤200 lines):**
-- Unit tests (backend logic, frontend components)
-- Integration tests (API contracts, database)
-- E2E tests (user flows)
-- Security tests (auth, injection, XSS)
-- Edge case tests (errors, limits, concurrency)
-- Test data & mocks
-- Coverage requirements
-- Related: [Link to all spec files]
+**5. tests.md (≤200 lines):**
+- Unit/integration/E2E/security tests
+- Edge cases, test data, coverage
 
-**6. [feature]-tasks.md (≤200 lines):**
-- Implementation plan (phases)
-- Task breakdown (small, actionable items)
-- Dependencies (task ordering)
-- Acceptance criteria per task
-- Risks & blockers
-- Related: [Link to overview.md]
+**6. tasks.md (≤200 lines):**
+- Implementation plan, task breakdown, dependencies
+- Acceptance criteria, risks
 
 **Each file must:**
-- Start with "**Related Specs:**" section linking to other files
-- Stay ≤200 lines
+- Include "**Related Specs:**" section with links
+- Stay ≤200 lines (≤100 for overview)
 - Be independently readable
-- Cross-reference related content
 
 ---
 
@@ -317,35 +298,36 @@ After approval:
 
 ### For MODULAR SPECS:
 
-1. **Create each file:**
-   - \`[feature]-overview.md\` (≤100 lines)
-   - \`[feature]-backend.md\` (≤200 lines)
-   - \`[feature]-frontend.md\` (≤200 lines)
-   - \`[feature]-security.md\` (≤200 lines)
-   - \`[feature]-tests.md\` (≤200 lines)
-   - \`[feature]-tasks.md\` (≤200 lines)
+1. **Create folder:** \`.project-memory/specs/[feature-name]/\`
+2. **Create each file in that folder:**
+   - \`overview.md\` (≤100 lines)
+   - \`backend.md\` (≤200 lines) [if needed]
+   - \`frontend.md\` (≤200 lines) [if needed]
+   - \`security.md\` (≤200 lines) [if needed]
+   - \`tests.md\` (≤200 lines)
+   - \`tasks.md\` (≤200 lines)
 
-2. **Each file header:**
+3. **Each file header:**
 \`\`\`markdown
 # [Feature Name] - [Domain] Specification
 
 **Status:** Draft | **Created:** [YYYY-MM-DD]
 
 **Related Specs:**
-- [Overview](./ [feature]-overview.md)
-- [Backend](./ [feature]-backend.md)
-- [Frontend](./ [feature]-frontend.md)
-- [Security](./ [feature]-security.md)
-- [Tests](./ [feature]-tests.md)
-- [Tasks](./ [feature]-tasks.md)
+- [Overview](./overview.md)
+- [Backend](./backend.md)
+- [Frontend](./frontend.md)
+- [Security](./security.md)
+- [Tests](./tests.md)
+- [Tasks](./tasks.md)
 
 [... content ...]
 \`\`\`
 
-3. **Write all files using Write tool**
-4. **Verify each ≤200 lines**
+4. **Write all files using Write tool**
+5. **Verify each ≤200 lines**
 
-**Confirm creation:** Show all file paths to user
+**Confirm:** Show all file paths to user
 
 ---
 
@@ -355,14 +337,16 @@ Ask user via AskUserQuestion: "Spec(s) created. Parse tasks now?"
 
 If yes:
 - **Single spec:** Run \`project-memory parse-tasks\` on the spec file
-- **Modular specs:** Run \`project-memory parse-tasks\` on [feature]-tasks.md
+- **Modular specs:** Run \`project-memory parse-tasks\` on tasks.md in the feature folder
 
 ---
 
 ## Rules
 
 - **Always initialize/sync** project memory first (Step 1)
-- **Ask user: single or modular?** Complex features need modular specs (Step 2)
+- **Analyze complexity** - If HIGH, use EnterPlanMode before creating spec (Step 2)
+- **Recommend structure** - If >400 lines, MUST use modular specs (Step 2)
+- **Modular specs folder** - Must be in \`.project-memory/specs/[feature-name]/\`
 - **Clarify ambiguity** - Ask questions, don't guess (Step 3)
 - **Ask for context** - Ecosystem, integrations, scale, users (Step 3)
 - **Validate against code** - Flag conflicts, check compatibility (Step 4)
@@ -371,7 +355,7 @@ If yes:
 - **Include tests** - Unit, integration, E2E, security, edge cases (all specs)
 - **Keep maintainable** - Follow conventions, document, reusable (all specs)
 - **Write for agents** - Clear, actionable, unambiguous (all specs)
-- **Respect line limits** - Each file ≤200 lines (overview ≤100), use modular specs for complex features
+- **Respect line limits** - Each file ≤200 lines (overview ≤100)
 - **Cross-reference** - Modular specs must link to related files
 
 Done!

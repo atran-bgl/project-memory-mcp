@@ -8,7 +8,7 @@ export const INIT_PROMPT = `
 Initialize: create folder structure, analyze project, generate customized prompts, populate memory files.
 
 **CRITICAL:**
-- All prompts ≤ 400 lines composed (see CLAUDE.md)
+- All prompts generated must be less than 400 lines.
 - Get user approval before writing files
 - After completing init, read and cache project memory files as instructed in CLAUDE.md "Session Startup"
 ---

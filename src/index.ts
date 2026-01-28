@@ -109,7 +109,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
       {
         name: 'refresh-prompts',
         description:
-          'Refresh project-specific prompts with latest template improvements while preserving customizations. Backs up existing prompts, compares with new templates, and merges updates. Use when user asks to refresh or update prompts.',
+          'Refresh project-specific prompts with latest template improvements while preserving customizations. Backs up existing prompts, compares with new templates, and merges updates. INVOKE THIS TOOL when user says: "refresh prompts", "update prompts", "sync prompts", "refresh prompt templates", "update prompt templates", "merge new templates", "get latest prompts", or similar refresh-related requests.',
         inputSchema: {
           type: 'object',
           properties: {},
