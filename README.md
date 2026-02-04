@@ -77,6 +77,7 @@ npm uninstall -g @atran-bgl/project-memory-mcp
 ```
 
 Then remove the MCP server configuration from your Claude config file:
+
 - Claude Desktop: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - Claude Code CLI: `~/.claude.json`
 
@@ -122,6 +123,7 @@ You can also manually add to your user config at `~/.claude.json`:
 	}
 }
 ```
+
 </details>
 
 ### Restart Claude
@@ -314,7 +316,7 @@ Tasks follow this structure:
 
 ## MCP Tools
 
-The server exposes 7 tools (all return prompts only):
+The server exposes 9 main user-facing tools (all return prompts only):
 
 ### `init`
 
@@ -339,6 +341,14 @@ Organize existing CLAUDE.md into project-memory structure. Migrates architecture
 ### `create-spec`
 
 Create detailed specification from user requirements. Clarifies ambiguity, validates against codebase, considers security and edge cases.
+
+### `implement-feature`
+
+Implement features, fix bugs, or code from specifications. Audits codebase for reusable code, validates against acceptance criteria, confirms modifications with user, and guides step-by-step implementation.
+
+### `self-reflect`
+
+Mid-implementation self-reflection check. Lightweight quality check to catch issues early before they compound. Called during implement-feature when 4+ tasks or high complexity.
 
 ### `refresh-prompts`
 

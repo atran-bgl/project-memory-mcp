@@ -6,7 +6,26 @@ This project implements an MCP (Model Context Protocol) server for AI-driven pro
 
 ## Commits
 
-1. **0334bf2** - Add Explore agent instructions to review prompt for efficient codebase scanning
+1. **c5b2112** - updated Read me and prompt initialisation
+   - Updated README.md with latest documentation
+   - Improved init prompt for better project setup
+   - Enhanced parse-tasks prompt workflow
+   - Updated create-spec prompt template
+
+2. **bf51a27** - Improve implement feature prompt to add a self reflection step. added self reflect prompt to prompts system
+   - Added self-reflect tool for mid-implementation quality checks
+   - Integrated self-reflection step into implement-feature workflow
+   - Updated base.md, conventions.md, and all prompts
+   - Added self-reflect-prompt.ts with lightweight quality verification
+   - Enhanced implement-feature to trigger self-reflect when 4+ tasks or high complexity
+
+3. **39147af** - Upgrade sdk. Updated vite Fixed esbuild vulnerbility issue
+   - Upgraded @modelcontextprotocol/sdk to ^1.25.2
+   - Added hono override (4.11.7) for security fix
+   - Updated package-lock.json dependencies
+   - Fixed esbuild vulnerability
+
+4. **0334bf2** - Add Explore agent instructions to review prompt for efficient codebase scanning
    - Integrated Claude Explore agent for large codebase reviews
    - Added thoroughness levels (very thorough, medium) for flexible analysis
    - Enables efficient full-codebase scanning without reading every file

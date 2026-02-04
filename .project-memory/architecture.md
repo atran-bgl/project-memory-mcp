@@ -27,7 +27,7 @@ Project Memory MCP is a Model Context Protocol (MCP) server that acts as a **pur
 
 ### MCP Server (src/index.ts)
 - Implements MCP SDK Server interface
-- Exposes 9 tools via ListToolsRequestSchema
+- Exposes 16 tools via ListToolsRequestSchema (9 main + 6 get-new-*-prompt + 1 schema tool)
 - Routes tool calls in CallToolRequestSchema
 - Handles errors gracefully
 - Returns prompts only, never executes operations
@@ -59,6 +59,7 @@ Project Memory MCP is a Model Context Protocol (MCP) server that acts as a **pur
 
 ## Tool Definitions
 
+### Main User-Facing Tools (9)
 1. **init** - Initialize project memory system
 2. **parse-tasks** - Extract tasks from specs
 3. **review** - Review code changes
@@ -66,8 +67,17 @@ Project Memory MCP is a Model Context Protocol (MCP) server that acts as a **pur
 5. **organize** - Migrate CLAUDE.md to project-memory
 6. **create-spec** - Create detailed specifications
 7. **implement-feature** - Implement features from specs
-8. **refresh-prompts** - Update prompt templates
-9. **get-new-*-prompt** - Fetch new templates (called by refresh-prompts)
+8. **self-reflect** - Mid-implementation quality check (called during implement-feature)
+9. **refresh-prompts** - Update prompt templates
+
+### Helper Tools (7)
+10. **get-new-sync-prompt** - Fetch sync.md template
+11. **get-new-review-prompt** - Fetch review.md template
+12. **get-new-parse-tasks-prompt** - Fetch parse-tasks.md template
+13. **get-new-create-spec-prompt** - Fetch create-spec.md template
+14. **get-new-implement-feature-prompt** - Fetch implement-feature.md template
+15. **get-new-self-reflect-prompt** - Fetch self-reflect.md template
+16. **get-task-schema** - Return task JSON schema structure
 
 ## Data Flow
 

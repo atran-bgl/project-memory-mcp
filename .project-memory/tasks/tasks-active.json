@@ -1,3 +1,238 @@
 {
-  "tasks": []
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "title": "Update imports and remove deprecated schemas",
+      "description": "Replace Server import with McpServer and remove unused schema imports (CallToolRequestSchema, ListToolsRequestSchema) in src/index.ts",
+      "status": "pending",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "src/index.ts imports McpServer from @modelcontextprotocol/sdk/server/mcp.js",
+        "CallToolRequestSchema import removed",
+        "ListToolsRequestSchema import removed",
+        "All other imports unchanged (StdioServerTransport, prompts, schemas, utils)"
+      ],
+      "dependencies": [],
+      "subtasks": [],
+      "specReference": "specs/mcpserver-refactor.md",
+      "complexity": "simple",
+      "createdAt": "2026-02-04T15:30:00Z",
+      "updatedAt": "2026-02-04T15:30:00Z",
+      "completedAt": null
+    },
+    {
+      "id": "TASK-002",
+      "title": "Update server initialization and fix version",
+      "description": "Change 'new Server()' to 'new McpServer()' and update version from 0.1.0 to 0.2.0 to match package.json",
+      "status": "pending",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "Server initialization uses 'new McpServer()' instead of 'new Server()'",
+        "Version updated to 0.2.0",
+        "Capabilities object unchanged (tools: {})",
+        "Server name unchanged (project-memory-mcp)"
+      ],
+      "dependencies": ["TASK-001"],
+      "subtasks": [],
+      "specReference": "specs/mcpserver-refactor.md",
+      "complexity": "simple",
+      "createdAt": "2026-02-04T15:30:00Z",
+      "updatedAt": "2026-02-04T15:30:00Z",
+      "completedAt": null
+    },
+    {
+      "id": "TASK-003",
+      "title": "Register tools using hardcoded prompts",
+      "description": "Register 4 tools that use hardcoded prompt constants: init, organize, refresh-prompts, self-reflect. Each uses server.registerTool() with description, inputSchema: {}, and async callback with try-catch error handling.",
+      "status": "pending",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "init tool registered with INIT_PROMPT constant",
+        "organize tool registered with ORGANIZE_PROMPT constant",
+        "refresh-prompts tool registered with REFRESH_PROMPTS_PROMPT constant",
+        "self-reflect tool registered with SELF_REFLECT_PROMPT constant",
+        "Each tool has description matching original ListToolsRequestSchema",
+        "Each tool has inputSchema: {}",
+        "Each callback includes validatePromptLength() call",
+        "Each callback has try-catch with isError: true on failure"
+      ],
+      "dependencies": ["TASK-002"],
+      "subtasks": [
+        {
+          "id": "TASK-003-1",
+          "title": "Register init tool",
+          "status": "pending",
+          "acceptanceCriteria": ["Uses INIT_PROMPT", "Validates prompt length", "Returns content array"]
+        },
+        {
+          "id": "TASK-003-2",
+          "title": "Register organize tool",
+          "status": "pending",
+          "acceptanceCriteria": ["Uses ORGANIZE_PROMPT", "Validates prompt length", "Returns content array"]
+        },
+        {
+          "id": "TASK-003-3",
+          "title": "Register refresh-prompts tool",
+          "status": "pending",
+          "acceptanceCriteria": ["Uses REFRESH_PROMPTS_PROMPT", "Validates prompt length", "Returns content array"]
+        },
+        {
+          "id": "TASK-003-4",
+          "title": "Register self-reflect tool",
+          "status": "pending",
+          "acceptanceCriteria": ["Uses SELF_REFLECT_PROMPT", "Validates prompt length", "Returns content array"]
+        }
+      ],
+      "specReference": "specs/mcpserver-refactor.md",
+      "complexity": "moderate",
+      "createdAt": "2026-02-04T15:30:00Z",
+      "updatedAt": "2026-02-04T15:30:00Z",
+      "completedAt": null
+    },
+    {
+      "id": "TASK-004",
+      "title": "Register tools with async readPromptFile",
+      "description": "Register 5 tools that use async readPromptFile() to load project-specific prompts with fallback to constants: parse-tasks, review, sync, create-spec, implement-feature. Each calls getProjectRoot(), awaits readPromptFile(), and uses fallback constant.",
+      "status": "pending",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "parse-tasks tool registered with readPromptFile('parse-tasks.md') || PARSE_TASKS_PROMPT",
+        "review tool registered with readPromptFile('review.md') || REVIEW_PROMPT",
+        "sync tool registered with readPromptFile('sync.md') || SYNC_PROMPT",
+        "create-spec tool registered with readPromptFile('create-spec.md') || CREATE_SPEC_PROMPT",
+        "implement-feature tool registered with readPromptFile('implement-feature.md') || IMPLEMENT_FEATURE_PROMPT",
+        "Each tool calls getProjectRoot() in callback",
+        "Each tool awaits readPromptFile()",
+        "Each tool validates prompt length",
+        "Each callback has try-catch with isError: true on failure"
+      ],
+      "dependencies": ["TASK-002"],
+      "subtasks": [
+        {
+          "id": "TASK-004-1",
+          "title": "Register parse-tasks tool",
+          "status": "pending",
+          "acceptanceCriteria": ["Async readPromptFile", "Fallback to PARSE_TASKS_PROMPT", "Error handling"]
+        },
+        {
+          "id": "TASK-004-2",
+          "title": "Register review tool",
+          "status": "pending",
+          "acceptanceCriteria": ["Async readPromptFile", "Fallback to REVIEW_PROMPT", "Error handling"]
+        },
+        {
+          "id": "TASK-004-3",
+          "title": "Register sync tool",
+          "status": "pending",
+          "acceptanceCriteria": ["Async readPromptFile", "Fallback to SYNC_PROMPT", "Error handling"]
+        },
+        {
+          "id": "TASK-004-4",
+          "title": "Register create-spec tool",
+          "status": "pending",
+          "acceptanceCriteria": ["Async readPromptFile", "Fallback to CREATE_SPEC_PROMPT", "Error handling"]
+        },
+        {
+          "id": "TASK-004-5",
+          "title": "Register implement-feature tool",
+          "status": "pending",
+          "acceptanceCriteria": ["Async readPromptFile", "Fallback to IMPLEMENT_FEATURE_PROMPT", "Error handling"]
+        }
+      ],
+      "specReference": "specs/mcpserver-refactor.md",
+      "complexity": "moderate",
+      "createdAt": "2026-02-04T15:30:00Z",
+      "updatedAt": "2026-02-04T15:30:00Z",
+      "completedAt": null
+    },
+    {
+      "id": "TASK-005",
+      "title": "Register helper tools for templates and schema",
+      "description": "Register 7 helper tools: 6 get-new-*-prompt tools that return template constants directly, and get-task-schema that returns TASK_JSON_SCHEMA. These tools do NOT use try-catch wrappers (simpler pattern).",
+      "status": "pending",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "get-new-sync-prompt registered, validates SYNC_PROMPT, returns content directly",
+        "get-new-review-prompt registered, validates REVIEW_PROMPT, returns content directly",
+        "get-new-parse-tasks-prompt registered, validates PARSE_TASKS_PROMPT, returns content directly",
+        "get-new-create-spec-prompt registered, validates CREATE_SPEC_PROMPT, returns content directly",
+        "get-new-implement-feature-prompt registered, validates IMPLEMENT_FEATURE_PROMPT, returns content directly",
+        "get-new-self-reflect-prompt registered, validates SELF_REFLECT_PROMPT, returns content directly",
+        "get-task-schema registered, returns TASK_JSON_SCHEMA directly (no validation)",
+        "All helper tools have inputSchema: {}",
+        "No try-catch wrapper needed for these tools"
+      ],
+      "dependencies": ["TASK-002"],
+      "subtasks": [],
+      "specReference": "specs/mcpserver-refactor.md",
+      "complexity": "simple",
+      "createdAt": "2026-02-04T15:30:00Z",
+      "updatedAt": "2026-02-04T15:30:00Z",
+      "completedAt": null
+    },
+    {
+      "id": "TASK-006",
+      "title": "Remove old request handlers",
+      "description": "Delete the old ListToolsRequestSchema handler (lines 43-184) and CallToolRequestSchema handler (lines 189-364) from src/index.ts. These are replaced by individual registerTool() calls.",
+      "status": "pending",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "server.setRequestHandler(ListToolsRequestSchema, ...) removed",
+        "server.setRequestHandler(CallToolRequestSchema, ...) removed",
+        "Switch statement with 16 cases removed",
+        "No setRequestHandler calls remain in src/index.ts",
+        "File compiles without errors"
+      ],
+      "dependencies": ["TASK-003", "TASK-004", "TASK-005"],
+      "subtasks": [],
+      "specReference": "specs/mcpserver-refactor.md",
+      "complexity": "simple",
+      "createdAt": "2026-02-04T15:30:00Z",
+      "updatedAt": "2026-02-04T15:30:00Z",
+      "completedAt": null
+    },
+    {
+      "id": "TASK-007",
+      "title": "Verify build, tests, and linting",
+      "description": "Run automated checks to ensure refactored code compiles, passes existing tests, and meets linting standards. No code changes should be needed if previous tasks done correctly.",
+      "status": "pending",
+      "priority": "high",
+      "acceptanceCriteria": [
+        "npm run build succeeds with no TypeScript errors",
+        "npm test passes all 5 tests in test/prompt-loader.test.ts",
+        "npm run lint passes with no ESLint errors",
+        "No changes to test files, prompt files, utils, or schemas",
+        "Only src/index.ts modified"
+      ],
+      "dependencies": ["TASK-006"],
+      "subtasks": [],
+      "specReference": "specs/mcpserver-refactor.md",
+      "complexity": "simple",
+      "createdAt": "2026-02-04T15:30:00Z",
+      "updatedAt": "2026-02-04T15:30:00Z",
+      "completedAt": null
+    },
+    {
+      "id": "TASK-008",
+      "title": "Manual testing verification",
+      "description": "Test MCP server with Claude Desktop/Code to verify tools return prompts correctly. This validates that the refactored McpServer API works identically to the old Server API.",
+      "status": "pending",
+      "priority": "medium",
+      "acceptanceCriteria": [
+        "init tool called via MCP returns INIT_PROMPT text",
+        "sync tool called via MCP returns SYNC_PROMPT or project-specific prompt",
+        "parse-tasks tool returns prompt (validates async readPromptFile works)",
+        "get-task-schema tool returns TASK_JSON_SCHEMA",
+        "Invalid tool name returns proper error",
+        "All 16 tools accessible and functional"
+      ],
+      "dependencies": ["TASK-007"],
+      "subtasks": [],
+      "specReference": "specs/mcpserver-refactor.md",
+      "complexity": "simple",
+      "createdAt": "2026-02-04T15:30:00Z",
+      "updatedAt": "2026-02-04T15:30:00Z",
+      "completedAt": null
+    }
+  ]
 }

@@ -9,31 +9,33 @@ This project uses `.project-memory/` for AI-managed task and context tracking.
 Before working on ANY task, you MUST read these files in order:
 
 1. `.project-memory/tasks/tasks-active.json`
-   - **Why:** Know what work is in progress and what's pending
-   - **Read:** ALL active tasks before starting any work
+    - **Why:** Know what work is in progress and what's pending
+    - **Read:** ALL active tasks before starting any work
 
 2. `.project-memory/architecture.md`
-   - **Why:** Understand system design and component interactions
-   - **Read:** Before making architectural decisions
+    - **Why:** Understand system design and component interactions
+    - **Read:** Before making architectural decisions
 
 3. `.project-memory/conventions.md`
-   - **Why:** Follow existing code patterns and standards
-   - **Read:** Before writing any code
+    - **Why:** Follow existing code patterns and standards
+    - **Read:** Before writing any code
 
 4. `.project-memory/useful-commands.md`
-   - **Why:** Use correct commands for dev/build/test
-   - **Read:** Before running any commands
+    - **Why:** Use correct commands for dev/build/test
+    - **Read:** Before running any commands
 
 5. `.project-memory/prompts/base.md`
-   - **Why:** Full workflow instructions and rules
-   - **Read:** For understanding project memory system
+    - **Why:** Full workflow instructions and rules
+    - **Read:** For understanding project memory system
 
 **Failure to read these files will result in:**
+
 - Duplicate work (tasks already in progress)
 - Incorrect implementations (violating architecture/conventions)
 - Build/test failures (using wrong commands)
 
 **Use proactively:**
+
 - `project-memory parse-tasks` - Parse tasks from new specs
 - `project-memory review` - Before commits
 - `project-memory sync` - After commits
@@ -48,29 +50,31 @@ This is an MCP (Model Context Protocol) server that acts as a **pure prompt prov
 ## Key Architecture Rules
 
 1. **Pure Prompt Provider**
-   - MCP server ONLY returns prompt text
-   - NEVER reads/writes project files (except .project-memory/prompts/)
-   - NEVER executes git commands
-   - NEVER parses JSON or processes data
+    - MCP server ONLY returns prompt text
+    - NEVER reads/writes project files (except .project-memory/prompts/)
+    - NEVER executes git commands
+    - NEVER parses JSON or processes data
 
 2. **Prompt Size Limit - CRITICAL**
-   - Overall composed prompt MUST be ≤ 400 lines
-   - Composed prompts = base.md (optional) + specific prompt (e.g., sync.md)
-   - This prevents context bloat
-   - Validate during init and warn if exceeded
+    - Overall composed prompt MUST be ≤ 400 lines
+    - Composed prompts = base.md (optional) + specific prompt (e.g., sync.md)
+    - This prevents context bloat
+    - Validate during init and warn if exceeded
 
 3. **Project-Specific Prompts**
-   - Only ONE hardcoded prompt: init
-   - All other prompts (parse-tasks, review, sync) are created during init
-   - Prompts are customized per project based on language/framework
+    - Only ONE hardcoded prompt: init
+    - All other prompts (parse-tasks, review, sync) are created during init
+    - Prompts are customized per project based on language/framework
 
 ## Development Workflow
 
 ### Before any task, check complexity:
+
 - Simple: Direct implementation
 - Complex: Break down into subtasks, iterate with testing
 
 ### For each implementation:
+
 1. **Research**: Check spec.md, understand requirements
 2. **Plan**: Break down if complex
 3. **Implement**: Write focused code
@@ -78,6 +82,7 @@ This is an MCP (Model Context Protocol) server that acts as a **pure prompt prov
 5. **Verify**: Ensure TypeScript compiles, tests pass
 
 ### Definition of Done:
+
 - ✅ `npm run build` succeeds
 - ✅ All TypeScript type checks pass
 - ✅ `npm test` passes
@@ -135,12 +140,14 @@ Never change existing calculations, validation rules, business constraints, or d
 Never change UI copy/text, visual design (colors, layouts, spacing), or user flows unless explicitly requested. Follow existing design system, use existing components, respect accessibility rules. When unsure: ASK FIRST.
 
 **Minimal Change Philosophy:**
+
 - Only modify files explicitly mentioned or clearly required
 - NEVER refactor unless explicitly asked
 - NEVER remove existing behavior without confirmation
 - Prefer surgical changes over broad refactoring
 
 **Before Making Changes, Ask:**
+
 1. Is this file explicitly part of my task?
 2. Is this change necessary to complete the task?
 3. Am I removing or changing existing functionality?
@@ -181,11 +188,11 @@ See `.project-memory/prompts/base.md` → "Scope & Authority Rules"
 **At the start of EVERY session, immediately:**
 
 1. Read and cache these project memory files in your session context:
-   - `.project-memory/architecture.md` - Current system structure and components
-   - `.project-memory/useful-commands.md` - Available commands and scripts
-   - `.project-memory/conventions.md` - Established coding patterns
-   - `.project-memory/commit-log.md` - Recent commits and changes
-   - All `.project-memory/specs/*.md` - Feature specifications
+    - `.project-memory/architecture.md` - Current system structure and components
+    - `.project-memory/useful-commands.md` - Available commands and scripts
+    - `.project-memory/conventions.md` - Established coding patterns
+    - `.project-memory/commit-log.md` - Recent commits and changes
+    - All `.project-memory/specs/*.md` - Feature specifications
 
 2. Retain this knowledge throughout the entire session
 3. Reference these files whenever working with project-memory-mcp tools
@@ -195,15 +202,19 @@ This ensures you understand the current system state before executing any tasks.
 ## Project Memory Tools - When to Use
 
 **Available Tools** (via project-memory-mcp MCP server):
+
 - `mcp__project-memory__init` - Initialize project memory system
 - `mcp__project-memory__parse-tasks` - Extract tasks from specs
 - `mcp__project-memory__review` - Review code changes
 - `mcp__project-memory__sync` - Sync project memory with commits
 - `mcp__project-memory__create-spec` - Create detailed specifications
+- `mcp__project-memory__implement-feature` - Implement features from specs with validation
+- `mcp__project-memory__self-reflect` - Mid-implementation quality check
 - `mcp__project-memory__refresh-prompts` - Update prompt templates with latest improvements
 - `mcp__project-memory__organize` - Migrate existing CLAUDE.md to project memory
 
 **Trigger refresh-prompts when user asks:**
+
 - "refresh prompts", "update prompts", "sync prompts"
 - "merge new templates", "update prompt templates", "get latest prompts"
 - Or any similar refresh-related requests
@@ -211,6 +222,7 @@ This ensures you understand the current system state before executing any tasks.
 ## Documentation Rule
 
 **NO MASSIVE .MD FILES. EVER.**
+
 - Keep documentation in code (docstrings, comments)
 - README.md for overview
 - spec.md for detailed specification
