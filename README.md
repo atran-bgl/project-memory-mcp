@@ -58,6 +58,10 @@ npm install -g https://github.com/atran-bgl/project-memory-mcp/releases/download
 
 Replace `vX.X.X` and `X.X.X` with the actual version number.
 
+3. Restart Claude Code/Desktop to pick up the updated binary.
+
+**Note:** You do NOT need to remove and re-add the MCP configuration when updating - the configuration in `~/.claude.json` remains unchanged.
+
 3. Restart Claude Desktop or Claude Code CLI to reload the MCP server
 
 4. (Optional) Refresh your project prompts to get latest template improvements:
@@ -72,14 +76,28 @@ This will merge new template improvements while preserving your project-specific
 
 To completely remove the MCP server:
 
+**Step 1: Remove from Claude Code/Desktop**
+
+For Claude Code CLI:
+```bash
+claude mcp remove project-memory-mcp
+```
+
+For Claude Desktop:
+- Open Settings → MCP Servers
+- Remove `project-memory-mcp` from the list
+
+Or manually edit config files:
+- Claude Desktop: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Claude Code CLI: `~/.claude.json`
+
+**Step 2: Uninstall npm package**
+
 ```bash
 npm uninstall -g @atran-bgl/project-memory-mcp
 ```
 
-Then remove the MCP server configuration from your Claude config file:
-
-- Claude Desktop: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Claude Code CLI: `~/.claude.json`
+**Note:** `npm uninstall` does NOT automatically remove the MCP configuration from Claude. You must manually remove it from Claude's settings first.
 
 ## Setup
 
